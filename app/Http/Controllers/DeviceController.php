@@ -94,7 +94,7 @@ class DeviceController extends Controller
             
             return response()->json([
                 'status' => $result,
-                'message' => $result ? 'Message published' : 'Failed to publish'
+                'message' => $result ? 'Success' : 'Failed to publish'
             ]);
         }
 
@@ -125,7 +125,7 @@ class DeviceController extends Controller
             $result = $this->mqtt->publish($topic, $message);
             return response()->json([
                 'status' => $result,
-                'message' => $result ? 'Message published' : 'Failed to publish'
+                'message' => $result ? 'Success' : 'Failed to publish'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -155,7 +155,7 @@ class DeviceController extends Controller
             $result = $this->mqtt->publish($topic, $message);
             return response()->json([
                 'status' => $result,
-                'message' => $result ? 'Message published' : 'Failed to publish'
+                'message' => $result ? 'Success' : 'Failed to publish'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -194,7 +194,7 @@ class DeviceController extends Controller
             $result = $this->mqtt->publish($topic, $message);
             return response()->json([
                 'status' => $result,
-                'message' => $result ? 'Message published' : 'Failed to publish'
+                'message' => $result ? 'Success' : 'Failed to publish'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -228,7 +228,7 @@ class DeviceController extends Controller
             $result = $this->mqtt->publish($topic, $message);
             return response()->json([
                 'status' => $result,
-                'message' => $result ? 'Message published' : 'Failed to publish'
+                'message' => $result ? 'Success' : 'Failed to publish'
             ]);
         } catch (\Exception $e) {
             return response()->json([
