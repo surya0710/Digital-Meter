@@ -4,30 +4,43 @@ namespace App\Services;
 
 use PhpMqtt\Client\MqttClient;
 use PhpMqtt\Client\ConnectionSettings;
+use Illuminate\Support\Facades\Log;
 
 class MqttService
 {
-    public function publish(string $topic, string $message): void
+    protected $connection;
+
+    public function __construct()
     {
-        $clientId = 'laravel_pub_' . uniqid();
+        $this->connection = config('mqtt.connections.default');
+    }
 
-        $settings = (new ConnectionSettings)
-            ->setUsername(config('mqtt.username'))
-            ->setPassword(config('mqtt.password'))
-            ->setUseTls(true)
-            ->setTlsCertificateAuthorityFile(
-                'C:\xampp\php\extras\ssl\cacert.pem'
-            )
-            ->setKeepAliveInterval(30);
+    public function publish($topic, $message, $qos = 0, $retain = false)
+    {
+        try {
+            $client = new MqttClient(
+                $this->connection['host'],
+                $this->connection['port'],
+                $this->connection['client_id'] . '_pub'
+            );
 
-        $mqtt = new MqttClient(
-            config('mqtt.host'),
-            (int) config('mqtt.port'),
-            $clientId
-        );
+            $settings = (new ConnectionSettings)
+                ->setUsername($this->connection['username'])
+                ->setPassword($this->connection['password'])
+                ->setKeepAliveInterval(60)
+                ->setUseTls($this->connection['use_tls']);
 
-        $mqtt->connect($settings, true);
-        $mqtt->publish($topic, $message, 0);
-        $mqtt->disconnect();
+            $client->connect($settings, true);
+            $client->publish($topic, $message, $qos, $retain);
+            $client->disconnect();
+
+            return true;
+
+        } catch (\Throwable $e) {
+            Log::error('MQTT Publish Error', [
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
     }
 }

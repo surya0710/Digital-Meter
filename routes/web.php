@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MqttController;
+use App\Livewire\DeviceControl;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -31,8 +33,14 @@ Route::group(['prefix' => 'dashboard','middleware' => 'auth'], function () {
     Route::get('/devices/{id}/view', [DeviceController::class, 'view'])->name('devices.view');
 
     Route::get('/devices/publish', [DeviceController::class, 'publish'])->name('devices.publish');
+    Route::post('/mqtt/publish', [MqttController::class, 'publish']);
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-
+Route::post('/device/switch', [DeviceController::class, 'switch'])->name('devices.switch');
+Route::post('/devices/mqtt-data', [DeviceController::class, 'getMqttData'])->name('devices.mqtt.data');
+Route::post('devices/fetchTimer', [DeviceController::class, 'fetchTimer'])->name('devices.fetchTimer');
+Route::post('devices/deleteTimer', [DeviceController::class, 'deleteTimer'])->name('devices.deleteTimer');
+Route::post('devices/createTimer', [DeviceController::class, 'createTimer'])->name('devices.saveTimer');
+Route::post('devices/shutdownAll', [DeviceController::class, 'shutdownAll'])->name('devices.shutdownAll');

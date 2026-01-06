@@ -1,65 +1,77 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'View Device')
 @section('content')
 <div class="page-body">
     <div class="container-fluid">
         <div class="page-title">
-            <div class="row">
+            <div class="d-flex " style="justify-content: end;">
+                <button class="btn btn-danger" onclick="shutdownAll()" id="reset-voltage"><i class="fas fa-power-off"></i> Shutdown All</button>
+            </div>
+            <div class="row mt-2">
                 <div class="col-sm-6 col-12">
                     <h2>Device ({{ $device->device_id }})</h2>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-3">
+                        <label>Voltage: <span id="voltage-value">0.00 V</span></label>
+                        <label>Total Amps: <span id="total-amps">0.00 A</span></label>
+                        <label>Total Power: <span id="total-power">0.00 (W)</span></label>
+                        <label>Total Energy: <span id="total-energy">0.00 (KWH)</span></label>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="container-fluid">
         <div class="row g-3">
-            <div class="col-md-4" id="device-1">
+            @for($i = 0; $i <= 7; $i++)
+                <div class="col-md-4" id="device-{{ $i }}">
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-space-between">
-                            <h3>Switch 1</h3>
-                            <button class="btn btn-success" onclick="showDetails(1)">Show Details</button>
+                            <h3>Switch {{ $i }}</h3>
+                            <button class="btn btn-success" id="details-{{ $i }}" onclick="showDetails({{ $i }})">Show Details</button>
                         </div>
                         <div class="flex py-3">
-                            <button class="btn btn-danger"><i class="fa-solid fa-toggle-off"></i> OFF</button>
-                            <button class="btn btn-danger"><i class="fa-solid fa-clock"></i> Timer OFF</button>
+                            <button class="btn btn-danger" data-status="0" id="switch-{{ $i }}" onclick="switchOn(this, {{ $i }})"><i class="fa-solid fa-toggle-off"></i> OFF</button>
+                            <button class="btn btn-danger" onclick="showTimer({{ $i }})"><i class="fa-solid fa-clock"></i> Show Timer</button>
                         </div>
                         <div class="row py-3">
-                            <button class="btn btn-warning rounded"><i class="fa-solid fa-bolt"></i> Fuse Blown</button>
-                            <button class="btn btn-success mt-2"><i class="fa-solid fa-warning"></i> Current: Normal</button>
+                            <button class="btn btn-success rounded" id="fuse-{{ $i }}"><i class="fa-solid fa-bolt"></i> Fuse OK</button>
+                            <button class="btn btn-success mt-2"> Current: Normal</button>
                         </div>
                         <div class="row px-3 py-2">
                             <label><i class="fa-solid fa-bolt"></i> Current (A)</label>
-                            <h4>0.0</h4>
+                            <h4 id="current-value-{{ $i }}">0.0</h4>
                         </div>
                         <hr>
                         <div class="row px-3 py-2">
                             <label><i class="fa-solid fa-battery"></i> Energy (KWH)</label>
-                            <h4>0.0</h4>
+                            <h4 id="energy-value-{{ $i }}">0.0</h4>
                         </div>
                         <hr>
                         <div class="row px-3 py-2">
                             <label><i class="fa-solid fa-charging-station"></i> Power (W)</label>
-                            <h4>0.0</h4>
+                            <h4 id="power-value-{{ $i }}">0.0</h4>
                         </div>
-                        <div class="hidden mt-3" id="device-1-details">
+                        <div class="hidden mt-3" id="device-{{ $i }}-details">
                             <ul class="nav nav-tabs" id="myTab" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <a class="nav-link active" id="voltage-tab" data-bs-toggle="tab" href="#voltage" role="tab" aria-controls="voltage" aria-selected="true">Voltage Settings</a>
+                                    <a class="nav-link active" id="voltage-tab-{{ $i }}" data-bs-toggle="tab" href="#voltage-{{ $i }}" role="tab" aria-controls="voltage" aria-selected="true">Voltage Settings</a>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="current-tab" data-bs-toggle="tab" href="#current" role="tab" aria-controls="current" aria-selected="false">Current Settings</a>
+                                    <a class="nav-link" id="current-tab-{{ $i }}" data-bs-toggle="tab" href="#current-{{ $i }}" role="tab" aria-controls="current" aria-selected="false">Current Settings</a>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="energy-tab" data-bs-toggle="tab" href="#energy" role="tab" aria-controls="energy" aria-selected="false">Energy Management</a>
+                                    <a class="nav-link" id="energy-tab-{{ $i }}" data-bs-toggle="tab" href="#energy-{{ $i }}" role="tab" aria-controls="energy" aria-selected="false">Energy Management</a>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="timer-tab" data-bs-toggle="tab" href="#timer" role="tab" aria-controls="timer" aria-selected="false">Timer List</a>
+                                    <a class="nav-link" id="timer-tab-{{ $i }}" data-bs-toggle="tab" href="#timer-{{ $i }}" role="tab" aria-controls="timer" aria-selected="false">Timer List</a>
                                 </li>
                             </ul>
                             <div class="tab-content" id="myTabContent">
-                                <div class="tab-pane fade show active" id="voltage" role="tabpanel" aria-labelledby="voltage-tab">
+                                <div class="tab-pane fade show active" id="voltage-{{ $i }}" role="tabpanel" aria-labelledby="voltage-tab">
                                     <div class="container p-3">
                                         <div class="row">
                                             <label><i class="fa-solid fa-gears"></i> Voltage Settings</label>
@@ -79,7 +91,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="current" role="tabpanel" aria-labelledby="current-tab">
+                                <div class="tab-pane fade" id="current-{{ $i }}" role="tabpanel" aria-labelledby="current-tab">
                                     <div class="container p-3">
                                         <div class="row">
                                             <label><i class="fa-solid fa-bolt"></i> Current Settings <span class="bg-light circle"></span></label>
@@ -96,7 +108,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="energy" role="tabpanel" aria-labelledby="energy-tab">
+                                <div class="tab-pane fade" id="energy-{{ $i }}" role="tabpanel" aria-labelledby="energy-tab">
                                     <div class="container p-3">
                                         <div class="row">
                                             <label><i class="fa-solid fa-battery"></i> Energy Management</label>
@@ -106,82 +118,14 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="timer" role="tabpanel" aria-labelledby="timer-tab">
+                                <div class="tab-pane fade" id="timer-{{ $i }}" role="tabpanel" aria-labelledby="timer-tab">
                                     <div class="container p-3">
                                         <div class="d-flex justify-content-space-between">
                                             <label><i class="fa-solid fa-list"></i> TImer List</label>
-                                            <a href="#" class="btn btn-success">+ Add Timer</a>
+                                            <a href="javascript:void(0)" class="btn btn-success" onclick="addTimerRow('{{ $i }}')">+ Add Timer</a>
                                         </div>
-                                        <div class="row mt-2">
-                                            <table class="table table-responsive">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">ID</th>
-                                                        <th scope="col">Days</th>
-                                                        <th scope="col">Start</th>
-                                                        <th scope="col">Stop</th>
-                                                        <th scope="col">Status</th>
-                                                        <th scope="col">Enabled</th>
-                                                        <th scope="col">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>T70951</td>
-                                                        <td>
-                                                            <div class="day-selector">
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Mon">
-                                                                    <span>M</span>
-                                                                </label>
+                                        <div class="row mt-2 " id="timer-list-{{ $i }}">
 
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Tue">
-                                                                    <span>T</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Wed">
-                                                                    <span>W</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Thu">
-                                                                    <span>Th</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Fri">
-                                                                    <span>F</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Sat">
-                                                                    <span>S</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Sun">
-                                                                    <span>Su</span>
-                                                                </label>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <input type="time" name="start_time" class="form-control" value="{{ old('start_time', '08:00:00') }}">
-                                                        </td>
-                                                        <td>
-                                                            <input type="time" name="stop_time" class="form-control" value="{{ old('start_time', '17:00:00') }}">
-                                                        </td>
-                                                        <td class="text-center"><span class="bg-light circle"></span></td>
-                                                        <td><button class="btn btn-danger">OFF</button></td>
-                                                        <td>
-                                                            <div class="d-flex gap-2">
-                                                                <button class="btn btn-primary">Save</button>
-                                                                <button class="btn btn-danger">Delete</button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                            </table>
                                         </div>
                                     </div>
                                 </div>
@@ -189,414 +133,464 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4" id="device-2">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-space-between">
-                            <h3>Switch 2</h3>
-                            <button class="btn btn-success" onclick="showDetails(2)">Show Details</button>
-                        </div>
-                        <div class="flex py-3">
-                            <button class="btn btn-danger"><i class="fa-solid fa-toggle-off"></i> OFF</button>
-                            <button class="btn btn-danger"><i class="fa-solid fa-clock"></i> Timer OFF</button>
-                        </div>
-                        <div class="row py-3">
-                            <button class="btn btn-warning rounded"><i class="fa-solid fa-bolt"></i> Fuse Blown</button>
-                            <button class="btn btn-success mt-2"><i class="fa-solid fa-warning"></i> Current: Normal</button>
-                        </div>
-                        <div class="row px-3 py-2">
-                            <label><i class="fa-solid fa-bolt"></i> Current (A)</label>
-                            <h4>0.0</h4>
-                        </div>
-                        <hr>
-                        <div class="row px-3 py-2">
-                            <label><i class="fa-solid fa-battery"></i> Energy (KWH)</label>
-                            <h4>0.0</h4>
-                        </div>
-                        <hr>
-                        <div class="row px-3 py-2">
-                            <label><i class="fa-solid fa-charging-station"></i> Power (W)</label>
-                            <h4>0.0</h4>
-                        </div>
-                        <div class="hidden mt-3">
-                            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link active" id="voltage-tab" data-bs-toggle="tab" href="#voltage" role="tab" aria-controls="voltage" aria-selected="true">Voltage Settings</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="current-tab" data-bs-toggle="tab" href="#current" role="tab" aria-controls="current" aria-selected="false">Current Settings</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="energy-tab" data-bs-toggle="tab" href="#energy" role="tab" aria-controls="energy" aria-selected="false">Energy Management</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="timer-tab" data-bs-toggle="tab" href="#timer" role="tab" aria-controls="timer" aria-selected="false">Timer List</a>
-                                </li>
-                            </ul>
-                            <div class="tab-content" id="myTabContent">
-                                <div class="tab-pane fade show active" id="voltage" role="tabpanel" aria-labelledby="voltage-tab">
-                                    <div class="container p-3">
-                                        <div class="row">
-                                            <label><i class="fa-solid fa-gears"></i> Voltage Settings</label>
-                                            <form class="form-group">
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="min-voltage" placeholder="Min Voltage">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="max-voltage" placeholder="Max Voltage">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <button type="submit" class="btn btn-primary">Save</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="current" role="tabpanel" aria-labelledby="current-tab">
-                                    <div class="container p-3">
-                                        <div class="row">
-                                            <label><i class="fa-solid fa-bolt"></i> Current Settings <span class="bg-light circle"></span></label>
-                                            <form class="form-group">
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="max-current" placeholder="Max Current">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <button type="submit" class="btn btn-primary">Save</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="energy" role="tabpanel" aria-labelledby="energy-tab">
-                                    <div class="container p-3">
-                                        <div class="row">
-                                            <label><i class="fa-solid fa-battery"></i> Energy Management</label>
-                                            <div class="col-md-4">
-                                                <button type="submit" class="btn btn-primary"><i class="fas fa-redo"></i> Reset Energy</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="timer" role="tabpanel" aria-labelledby="timer-tab">
-                                    <div class="container p-3">
-                                        <div class="d-flex justify-content-space-between">
-                                            <label><i class="fa-solid fa-list"></i> TImer List</label>
-                                            <a href="#" class="btn btn-success">+ Add Timer</a>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <table class="table table-responsive">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">ID</th>
-                                                        <th scope="col">Days</th>
-                                                        <th scope="col">Start</th>
-                                                        <th scope="col">Stop</th>
-                                                        <th scope="col">Status</th>
-                                                        <th scope="col">Enabled</th>
-                                                        <th scope="col">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>T70951</td>
-                                                        <td>
-                                                            <div class="day-selector">
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Mon">
-                                                                    <span>M</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Tue">
-                                                                    <span>T</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Wed">
-                                                                    <span>W</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Thu">
-                                                                    <span>Th</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Fri">
-                                                                    <span>F</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Sat">
-                                                                    <span>S</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Sun">
-                                                                    <span>Su</span>
-                                                                </label>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <input type="time" name="start_time" class="form-control" value="{{ old('start_time', '08:00:00') }}">
-                                                        </td>
-                                                        <td>
-                                                            <input type="time" name="stop_time" class="form-control" value="{{ old('start_time', '17:00:00') }}">
-                                                        </td>
-                                                        <td class="text-center"><span class="bg-light circle"></span></td>
-                                                        <td><button class="btn btn-danger">OFF</button></td>
-                                                        <td>
-                                                            <div class="d-flex gap-2">
-                                                                <button class="btn btn-primary">Save</button>
-                                                                <button class="btn btn-danger">Delete</button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4" id="device-3">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-space-between">
-                            <h3>Switch 3</h3>
-                            <button class="btn btn-success" onclick="showDetails(3)">Show Details</button>
-                        </div>
-                        <div class="flex py-3">
-                            <button class="btn btn-danger"><i class="fa-solid fa-toggle-off"></i> OFF</button>
-                            <button class="btn btn-danger"><i class="fa-solid fa-clock"></i> Timer OFF</button>
-                        </div>
-                        <div class="row py-3">
-                            <button class="btn btn-warning rounded"><i class="fa-solid fa-bolt"></i> Fuse Blown</button>
-                            <button class="btn btn-success mt-2"><i class="fa-solid fa-warning"></i> Current: Normal</button>
-                        </div>
-                        <div class="row px-3 py-2">
-                            <label><i class="fa-solid fa-bolt"></i> Current (A)</label>
-                            <h4>0.0</h4>
-                        </div>
-                        <hr>
-                        <div class="row px-3 py-2">
-                            <label><i class="fa-solid fa-battery"></i> Energy (KWH)</label>
-                            <h4>0.0</h4>
-                        </div>
-                        <hr>
-                        <div class="row px-3 py-2">
-                            <label><i class="fa-solid fa-charging-station"></i> Power (W)</label>
-                            <h4>0.0</h4>
-                        </div>
-                        <div class="hidden mt-3">
-                            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link active" id="voltage-tab" data-bs-toggle="tab" href="#voltage" role="tab" aria-controls="voltage" aria-selected="true">Voltage Settings</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="current-tab" data-bs-toggle="tab" href="#current" role="tab" aria-controls="current" aria-selected="false">Current Settings</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="energy-tab" data-bs-toggle="tab" href="#energy" role="tab" aria-controls="energy" aria-selected="false">Energy Management</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="timer-tab" data-bs-toggle="tab" href="#timer" role="tab" aria-controls="timer" aria-selected="false">Timer List</a>
-                                </li>
-                            </ul>
-                            <div class="tab-content" id="myTabContent">
-                                <div class="tab-pane fade show active" id="voltage" role="tabpanel" aria-labelledby="voltage-tab">
-                                    <div class="container p-3">
-                                        <div class="row">
-                                            <label><i class="fa-solid fa-gears"></i> Voltage Settings</label>
-                                            <form class="form-group">
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="min-voltage" placeholder="Min Voltage">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="max-voltage" placeholder="Max Voltage">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <button type="submit" class="btn btn-primary">Save</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="current" role="tabpanel" aria-labelledby="current-tab">
-                                    <div class="container p-3">
-                                        <div class="row">
-                                            <label><i class="fa-solid fa-bolt"></i> Current Settings <span class="bg-light circle"></span></label>
-                                            <form class="form-group">
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="max-current" placeholder="Max Current">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <button type="submit" class="btn btn-primary">Save</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="energy" role="tabpanel" aria-labelledby="energy-tab">
-                                    <div class="container p-3">
-                                        <div class="row">
-                                            <label><i class="fa-solid fa-battery"></i> Energy Management</label>
-                                            <div class="col-md-4">
-                                                <button type="submit" class="btn btn-primary"><i class="fas fa-redo"></i> Reset Energy</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="timer" role="tabpanel" aria-labelledby="timer-tab">
-                                    <div class="container p-3">
-                                        <div class="d-flex justify-content-space-between">
-                                            <label><i class="fa-solid fa-list"></i> TImer List</label>
-                                            <a href="#" class="btn btn-success">+ Add Timer</a>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <table class="table table-responsive">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">ID</th>
-                                                        <th scope="col">Days</th>
-                                                        <th scope="col">Start</th>
-                                                        <th scope="col">Stop</th>
-                                                        <th scope="col">Status</th>
-                                                        <th scope="col">Enabled</th>
-                                                        <th scope="col">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>T70951</td>
-                                                        <td>
-                                                            <div class="day-selector">
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Mon">
-                                                                    <span>M</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Tue">
-                                                                    <span>T</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Wed">
-                                                                    <span>W</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Thu">
-                                                                    <span>Th</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Fri">
-                                                                    <span>F</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Sat">
-                                                                    <span>S</span>
-                                                                </label>
-
-                                                                <label class="day">
-                                                                    <input type="checkbox" name="days[]" value="Sun">
-                                                                    <span>Su</span>
-                                                                </label>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <input type="time" name="start_time" class="form-control" value="{{ old('start_time', '08:00:00') }}">
-                                                        </td>
-                                                        <td>
-                                                            <input type="time" name="stop_time" class="form-control" value="{{ old('start_time', '17:00:00') }}">
-                                                        </td>
-                                                        <td class="text-center"><span class="bg-light circle"></span></td>
-                                                        <td><button class="btn btn-danger">OFF</button></td>
-                                                        <td>
-                                                            <div class="d-flex gap-2">
-                                                                <button class="btn btn-primary">Save</button>
-                                                                <button class="btn btn-danger">Delete</button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-        @endsection
-        @push('scripts')
-        <script>
+        @endfor
+    </div>
+    @endsection
+    @push('scripts')
+    <script>
         let activeDevice = null;
 
         function showDetails(deviceID) {
 
-            const currentDevice  = $('#device-' + deviceID);
+            const currentDevice = $('#device-' + deviceID);
             const currentDetails = $('#device-' + deviceID + '-details');
-            const currentButton  = currentDevice.find('button.btn-success');
+            const currentButton = $("#details-" + deviceID);
 
-            // 🔁 If clicking same device → collapse it
             if (activeDevice === deviceID) {
-
-                currentDevice
-                    .removeClass('col-12')
-                    .addClass('col-md-4');
-
+                currentDevice.removeClass('col-12').addClass('col-md-4');
                 currentDetails.addClass('hidden');
                 currentButton.text('Show Details');
-
                 activeDevice = null;
                 return;
             }
 
-            // ⬇ STEP 1: Collapse ALL devices first (CRITICAL FIX)
-            $('[id^="device-"]').each(function () {
+            $('[id^="device-"]').each(function() {
                 if (!this.id.includes('details')) {
-                    const devId = this.id.replace('device-', '');
-                    const btn   = $(this).find('button.btn-success');
-
-                    $(this)
-                        .removeClass('col-12')
-                        .addClass('col-md-4');
-
-                    $('#device-' + devId + '-details').addClass('hidden');
-                    btn.text('Show Details');
+                    const id = this.id.replace('device-', '');
+                    $(this).removeClass('col-12').addClass('col-md-4');
+                    $('#device-' + id + '-details').addClass('hidden');
+                    $("#details-" + id).text('Show Details');
                 }
             });
 
-            // ⬆ STEP 2: Expand selected device
-            currentDevice
-                .removeClass('col-md-4')
-                .addClass('col-12');
-
+            currentDevice.removeClass('col-md-4').addClass('col-12');
             currentDetails.removeClass('hidden');
             currentButton.text('Hide Details');
-
             activeDevice = deviceID;
 
-            // Optional smooth scroll
             $('html, body').animate({
                 scrollTop: currentDevice.offset().top - 20
             }, 400);
         }
-        </script>
-        @endpush
+
+        function showTimer(deviceID) {
+
+            axios.post("{{ route('devices.fetchTimer') }}", {
+                    relayID: deviceID,
+                    deviceID: "{{ $device->device_id }}",
+                })
+                .then(response => {
+                    if (response.data.status === true) {
+                        alert(response.data.message);
+                    } else {
+                        alert(response.data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Request failed');
+                });
+
+            // First expand the device card
+            showDetails(deviceID);
+
+            // Deactivate all tabs for THIS device
+            $(`#voltage-tab-${deviceID}`).removeClass('active');
+            $(`#voltage-${deviceID}`).removeClass('show active');
+
+            // Activate TIMER tab
+            $(`#timer-tab-${deviceID}`).addClass('active');
+            $(`#timer-${deviceID}`).addClass('show active');
+        }
+
+        function switchOn(button, relayID) {
+
+            const status = button.getAttribute('data-status');
+
+            axios.post("{{ route('devices.switch') }}", {
+                    relayID: relayID,
+                    deviceID: "{{ $device->device_id }}",
+                    status: status
+                })
+                .then(response => {
+                    if (response.data.status === true) {
+                        alert(response.data.message);
+                    } else {
+                        alert(response.data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Request failed');
+                });
+        }
+
+        function renderDays(mask) {
+            const days = [
+                { label: 'M',  bit: 1 },
+                { label: 'T',  bit: 2 },
+                { label: 'W',  bit: 4 },
+                { label: 'Th', bit: 8 },
+                { label: 'F',  bit: 16 },
+                { label: 'S',  bit: 32 },
+                { label: 'Su', bit: 64 },
+            ];
+
+            return days.map(d => `
+                <label class="day">
+                    <input type="checkbox" data-bit="${d.bit}" ${mask & d.bit ? 'checked' : ''}>
+                    <span>${d.label}</span>
+                </label>
+            `).join('');
+        }
+
+        function deleteTimer(timerID, relayID) {
+            axios.post("{{ route('devices.deleteTimer') }}", {
+                timerID: timerID,
+                relayID : relayID,
+                deviceID: "{{ $device->device_id }}",
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    alert(response.data.message);
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+        }
+
+        function saveTimer(button, deviceId) {
+
+            const row = button.closest('tr');
+            if (!row) return;
+
+            /* 🔌 RELAY */
+            const relayId = parseInt(row.dataset.relay);
+
+            /* 🗓️ DAYS → BITMASK */
+            let daysMask = 0;
+            row.querySelectorAll('.day input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) {
+                    daysMask += parseInt(cb.dataset.bit);
+                }
+            });
+
+            if (daysMask === 0) {
+                alert('Please select at least one day');
+                return;
+            }
+
+            /* ⏰ TIME */
+            const startTime = row.querySelector('input[name="start_time"]').value;
+            const endTime   = row.querySelector('input[name="stop_time"]').value;
+
+            if (!startTime || !endTime) {
+                alert('Please select start and end time');
+                return;
+            }
+
+            /* 🔘 ENABLED */
+            const enabledBtn = row.querySelector('button[data-enabled]');
+            const enabled = enabledBtn?.dataset.enabled === 'true';
+
+            /* 🚀 SEND */
+            axios.post('{{ route("devices.saveTimer") }}', {
+                deviceID: deviceId,
+                relayID: relayId,
+                days: daysMask,
+                start_time: startTime,
+                end_time: endTime,
+                enabled: enabled
+            })
+            .then(res => {
+                if (res.data.status === true) {
+                    alert('Timer saved successfully');
+                } else {
+                    alert(res.data.error || 'Save failed');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Request failed');
+            });
+        }
+
+
+        function toggleTimerEnabled(button) {
+
+            const current = button.dataset.enabled === 'true';
+            const next = !current;
+
+            // update dataset
+            button.dataset.enabled = next;
+
+            // update UI
+            if (next) {
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-success');
+                button.innerText = 'ON';
+            } else {
+                button.classList.remove('btn-success');
+                button.classList.add('btn-danger');
+                button.innerText = 'OFF';
+            }
+        }
+
+        function addTimerRow(relayKey) {
+
+            const tbody = document.getElementById(`timer-body-${relayKey}`);
+            if (!tbody) {
+                console.warn('Timer table body not found');
+                return;
+            }
+
+            const newRow = `
+                <tr data-relay="${relayKey}">
+                    <td></td>
+
+                    <td>
+                        <div class="day-selector">
+                            ${renderDays(0)}
+                        </div>
+                    </td>
+
+                    <td>
+                        <input type="time"
+                            name="start_time"
+                            class="form-control"
+                            value="08:00">
+                    </td>
+
+                    <td>
+                        <input type="time"
+                            name="stop_time"
+                            class="form-control"
+                            value="17:00">
+                    </td>
+
+                    <td class="text-center">
+                        <span class="bg-light circle"></span>
+                    </td>
+
+                    <td>
+                        <button class="btn btn-danger" data-enabled="false" onclick="toggleTimerEnabled(this)">OFF</button>
+                    </td>
+
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary"
+                                    onclick="saveTimer(this, '{{ $device->device_id }}')">
+                                Save
+                            </button>
+                            <button class="btn btn-danger"
+                                    onclick="this.closest('tr').remove()">
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            tbody.insertAdjacentHTML('beforeend', newRow);
+        }
+
+        function shutdownAll(){
+            axios.post("{{ route('devices.shutdownAll') }}", {
+                deviceID: "{{ $device->device_id }}",
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    alert(response.data.message);
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            if (typeof window.Echo === 'undefined') {
+                console.error('❌ Echo not loaded');
+                return;
+            }
+
+            window.Echo
+                .channel('device-dashboard')
+                .listen('.mqtt.data.received', (e) => {
+
+                    if (!e.data) {
+                        console.warn('⚠️ Invalid payload', e);
+                        return;
+                    }
+
+                    const d = e.data.data;
+
+                    if (e.data.type == 'statusUpdate') {
+                        for (let i = 0; i < 8; i++) {
+
+                            let deviceIndex = i;
+
+                            /* 🔘 RELAY STATE */
+                            const relayState = d.relays[i]; // 0 / 1
+                            const switchBtn = document.getElementById(`switch-${deviceIndex}`);
+
+                            if (switchBtn) {
+                                if (relayState === 1) {
+                                    switchBtn.classList.remove('btn-danger');
+                                    switchBtn.classList.add('btn-success');
+                                    switchBtn.innerHTML = `<i class="fa-solid fa-toggle-on"></i> ON`;
+                                    switchBtn.dataset.status = '1';
+                                } else {
+                                    switchBtn.classList.remove('btn-success');
+                                    switchBtn.classList.add('btn-danger');
+                                    switchBtn.innerHTML = `<i class="fa-solid fa-toggle-off"></i> OFF`;
+                                    switchBtn.dataset.status = '0';
+                                }
+                            }
+
+                            /* ⚡ CURRENT */
+                            const currentEl = document.getElementById(`current-value-${deviceIndex}`);
+                            if (currentEl) {
+                                currentEl.innerText = d.currents[i];
+                            }
+
+                            // /* 🔌 POWER */
+                            const powerEL = document.getElementById(`power-value-${deviceIndex}`);
+                            if (powerEL) {
+                                powerEL.innerText = d.power[i];
+                            }
+
+                            /* 🔋 FUSE STATUS */
+                            const fuseBtn = document.getElementById(`fuse-${deviceIndex}`);
+                            if (fuseBtn) {
+                                if (d.fuses[i] === 0) {
+                                    fuseBtn.classList.remove('btn-success');
+                                    fuseBtn.classList.add('btn-warning');
+                                    fuseBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Fuse Blown`;
+                                } else {
+                                    fuseBtn.classList.remove('btn-warning');
+                                    fuseBtn.classList.add('btn-success');
+                                    fuseBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Fuse OK`;
+                                }
+                            }
+                        }
+
+                        const voltageEL = document.getElementById('voltage-value');
+                        if (voltageEL) {
+                            voltageEL.innerText = d.voltage + ' V';
+                        }
+
+                        const totalamps = document.getElementById('total-amps');
+                        if (totalamps) {
+                            const totalCurrent = d.currents.reduce((acc, curr) => acc + curr, 0);
+                            totalamps.innerText = (Math.round(totalCurrent * 100) / 100).toFixed(2) + ' A';
+                        }
+
+                        const totalPowerEL = document.getElementById('total-power');
+                        if (totalPowerEL) {
+                            const totalPower = d.power.reduce((acc, curr) => acc + curr, 0);
+                            totalPowerEL.innerText = (Math.round(totalPower * 100) / 100).toFixed(2) + ' W';
+                        }
+                    }
+
+                    if (e.data.cmd === 'getTimers') {
+
+                        const msgId = e.data.msgId;
+                        const timers = e.data.data;
+
+                        const timerListEl = document.getElementById(`timer-list-${msgId}`);
+                        if (!timerListEl || !Array.isArray(timers)) return;
+
+                        let rows = timers.map(timer => {
+
+                            return `
+                                <tr>
+                                    <td>${timer.id}</td>
+
+                                    <td>
+                                        <div class="day-selector">
+                                            ${renderDays(timer.days)}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <input type="time"
+                                            class="form-control"
+                                            value="${timer.onTime}">
+                                    </td>
+
+                                    <td>
+                                        <input type="time"
+                                            class="form-control"
+                                            value="${timer.offTime}">
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="bg-light circle"></span>
+                                    </td>
+
+                                    <td>
+                                        <button class="btn ${timer.enabled ? 'btn-success' : 'btn-danger'}">
+                                            ${timer.enabled ? 'ON' : 'OFF'}
+                                        </button>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-primary">Save</button>
+                                            <button class="btn btn-danger" onclick="deleteTimer(${timer.id}, ${msgId})">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
+
+                        timerListEl.innerHTML = `
+                            <table class="table table-responsive">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Days</th>
+                                        <th>Start</th>
+                                        <th>Stop</th>
+                                        <th>Status</th>
+                                        <th>Enabled</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timer-body-${msgId}">
+                                    ${rows}
+                                </tbody>
+                            </table>
+                        `;
+                    }
+
+                    if (e.data.type === 'energyUpdate') {
+                        for (let i = 0; i < 8; i++) {
+                            const energyEl = document.getElementById(`energy-value-${i}`);
+                            if (energyEl) {
+                                energyEl.innerText = (Math.round(e.data.data.energy[i] * 100) / 100).toFixed(2);
+                            }
+                        }
+
+                        const totalEnergyEL = document.getElementById('total-energy');
+                        if (totalEnergyEL) {
+                            const totalEnergy = e.data.data.energy.reduce((acc, curr) => acc + curr, 0);
+                            totalEnergyEL.innerText = (Math.round(totalEnergy * 100) / 100).toFixed(2) + ' KWH';
+                        }
+                    }
+                });
+        });
+    </script>
+
+    @endpush

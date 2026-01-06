@@ -6,11 +6,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Devices;
 use App\Models\User;
-use PhpMqtt\Client\Facades\MQTT;
 use App\Services\MqttService;
 
 class DeviceController extends Controller
 {
+
+    protected $mqtt;
+
+    public function __construct(MqttService $mqtt)
+    {
+        $this->mqtt = $mqtt;
+    }
+
     public function list(){
         $devices = Devices::with('user')->latest()->paginate(10);
         return view('devices', compact('devices'));
@@ -62,9 +69,172 @@ class DeviceController extends Controller
         return view('devices-view', compact('device'));
     }
 
-    public function publish(MqttService $mqtt)
-    {
-        $mqtt->publish('test/topic', 'Hello from Laravel');
-        return 'MQTT message sent';
+    public function switch(Request $request){
+        $validator = Validator::make($request->all(), [
+            'deviceID' => 'required',
+            'relayID'   => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+        try {
+            if($request->status == 0){
+                $switch = 1;
+            }else{
+                $switch = 0;
+            }
+            $topic = $request->deviceID."/request";
+            $message = json_encode(["msgId"=>"q2", "cmd"=>"setRelay", "data"=>["relay"=> $request->relayID, "state"=>$switch]]);
+            
+            $result = $this->mqtt->publish($topic, $message);
+            
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Message published' : 'Failed to publish'
+            ]);
+        }
+
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function fetchTimer(Request $request){
+        $validator = Validator::make($request->all(), [
+            'deviceID' => 'required',
+            'relayID'   => 'required'
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode(["cmd"=>"getTimers", "data"=>["relay"=> $request->relayID]]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Message published' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function deleteTimer(Request $request){
+        $validator = Validator::make($request->all(), [
+            'timerID' => 'required',
+            'deviceID' => 'required',
+            'relayID'   => 'required'
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode(["msgId"=> $request->timerID,"cmd"=>"deleteTimer", "data"=>["timerId"=> $request->timerID]]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Message published' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function createTimer(Request $request){
+        $validator = Validator::make($request->all(), [
+            'deviceID' => 'required',
+            'relayID'   => 'required',
+            "days" => 'required',
+            "start_time" => 'required',
+            "end_time" => 'required',
+            "enabled" => 'required'
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode(["cmd"=>"createTimer", "data"=>[
+                "relay" => $request->relayID,
+                "days" => $request->days,
+                "startTime" => $request->start_time.":00",
+                "endTime" => $request->end_time.":00",
+                "enabled" => $request->enabled
+            ]]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Message published' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function shutdownAll(Request $request){
+        $validator = Validator::make($request->all(), [
+            "deviceID" => 'required',
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode([
+                "msgId" => "all_off",
+                "cmd"=>"setAllRelays", 
+                "data"=>[
+                    "state"=> 0
+                ]
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Message published' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }
