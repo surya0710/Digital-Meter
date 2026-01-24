@@ -1,8 +1,8 @@
     <header class="page-header row">
         <div class="logo-wrapper d-flex align-items-center col-auto">
           <a href="{{ route('dashboard') }}" class="logo">
-            <img class="light-logo img-fluid" src="{{ asset('assets/images/logo/logo-dark.png') }}" alt="logo" />
-            <img class="dark-logo img-fluid" src="{{ asset('assets/images/skyteam_travel.png') }}" alt="logo" />
+            <img class="light-logo img-fluid" src="{{ asset('assets/images/logo/3Elabs.jpeg') }}" alt="logo" style="width: 120px;" />
+            <img class="dark-logo img-fluid" src="{{ asset('assets/images/3Elabs.jpeg') }}" alt="logo" style="width: 120px;" />
           </a>
           <a class="close-btn toggle-sidebar" href="javascript:void(0)">
             <svg class="svg-color">
