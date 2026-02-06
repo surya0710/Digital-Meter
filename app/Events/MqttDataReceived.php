@@ -4,59 +4,45 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
-class MqttDataReceived implements ShouldBroadcast
+class MqttDataReceived implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * MQTT topic
-     */
-    public string $topic;
-
-    /**
-     * Decoded MQTT payload
-     */
+    public string $deviceId;
     public array $data;
 
-    /**
-     * Create a new event instance.
-     */
-    public function __construct(string $topic, array $data)
+    public function __construct(string $deviceId, array $data)
     {
-        $this->topic = $topic;
-        $this->data  = $data;
+        $this->deviceId = $deviceId;
+        $this->data     = $data;
     }
 
-    /**
-     * Channel the event should broadcast on.
-     */
     public function broadcastOn(): Channel
     {
-        // Public channel (simple & works out of the box)
-        return new Channel('device-dashboard');
+        return new Channel('device.' . $this->deviceId);
     }
 
-    /**
-     * Optional: Custom event name on frontend
-     */
     public function broadcastAs(): string
     {
-        return 'mqtt.data.received';
+        return 'mqtt.data';
     }
 
-    /**
-     * Data sent to frontend
-     */
     public function broadcastWith(): array
     {
+        // Log::info('🔥 Broadcasting MQTT', [
+        //     'device' => $this->deviceId,
+        //     'payload' => $this->data,
+        // ]);
+
         return [
-            'topic' => $this->topic,
-            'data'  => $this->data,
-            'time'  => now()->toDateTimeString(),
+            'device_id' => $this->deviceId,
+            'data'      => $this->data,
+            'time'      => now()->toDateTimeString(),
         ];
     }
 }
