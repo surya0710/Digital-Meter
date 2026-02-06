@@ -20,11 +20,16 @@ class MqttDataReceived implements ShouldBroadcastNow
     {
         $this->deviceId = $deviceId;
         $this->data     = $data;
+
+        Log::info('🔥 MQTT EVENT CONSTRUCTED', [
+            'device' => $deviceId,
+            'data' => $data,
+        ]);
     }
 
     public function broadcastOn(): Channel
     {
-        return new Channel('device.' . $this->deviceId);
+        return new Channel('device-dashboard');
     }
 
     public function broadcastAs(): string
@@ -34,10 +39,6 @@ class MqttDataReceived implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        // Log::info('🔥 Broadcasting MQTT', [
-        //     'device' => $this->deviceId,
-        //     'payload' => $this->data,
-        // ]);
 
         return [
             'device_id' => $this->deviceId,

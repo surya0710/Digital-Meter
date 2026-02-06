@@ -44,3 +44,20 @@ Route::post('devices/fetchTimer', [DeviceController::class, 'fetchTimer'])->name
 Route::post('devices/deleteTimer', [DeviceController::class, 'deleteTimer'])->name('devices.deleteTimer');
 Route::post('devices/createTimer', [DeviceController::class, 'createTimer'])->name('devices.saveTimer');
 Route::post('devices/shutdownAll', [DeviceController::class, 'shutdownAll'])->name('devices.shutdownAll');
+
+Route::get('/reverb-test', function () {
+    event(new \App\Events\MqttDataReceived(
+        'TEST-DEVICE',
+        [
+            'type' => 'statusUpdate',
+            'data' => [
+                'relays' => [1,1,1,1,1,1,1,1],
+                'currents' => [1,2,3,4,5,6,7,8],
+                'power' => [10,20,30,40,50,60,70,80],
+                'fuses' => [1,1,1,1,1,1,1,1],
+                'voltage' => 230
+            ]
+        ]
+    ));
+    return 'sent';
+});

@@ -417,7 +417,9 @@
         }
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        const deviceId = "{{ $device->device_id }}";
+
+        document.addEventListener('DOMContentLoaded', function () {
 
             if (typeof window.Echo === 'undefined') {
                 console.error('❌ Echo not loaded');
@@ -426,16 +428,19 @@
 
             window.Echo
                 .channel('device-dashboard')
-                .listen('.mqtt.data.received', (e) => {
+                .listen('.mqtt.data', (e) => {
 
-                    if (!e.data) {
+                    const payload = e;
+                    if(payload.device_id !== deviceId) return;
+
+                    if (!payload.data) {
                         console.warn('⚠️ Invalid payload', e);
                         return;
                     }
 
-                    const d = e.data.data;
+                    const d = payload.data.data;
 
-                    if (e.data.type == 'statusUpdate') {
+                    if (payload.data.type == 'statusUpdate') {
                         for (let i = 0; i < 8; i++) {
 
                             let deviceIndex = i;
@@ -503,7 +508,7 @@
                         }
                     }
 
-                    if (e.data.cmd === 'getTimers') {
+                    if (payload.data.cmd === 'getTimers') {
 
                         const msgId = e.data.msgId;
                         const timers = e.data.data;
@@ -575,7 +580,7 @@
                         `;
                     }
 
-                    if (e.data.type === 'energyUpdate') {
+                    if (payload.data.type === 'energyUpdate') {
                         for (let i = 0; i < 8; i++) {
                             const energyEl = document.getElementById(`energy-value-${i}`);
                             if (energyEl) {

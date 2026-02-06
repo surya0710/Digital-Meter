@@ -6,24 +6,21 @@ use Illuminate\Console\Command;
 use PhpMqtt\Client\MqttClient;
 use PhpMqtt\Client\ConnectionSettings;
 use App\Events\MqttDataReceived;
-use App\Models\Devices;
 use Illuminate\Support\Facades\Log;
 
 class MqttSubscriber extends Command
 {
     protected $signature = 'mqtt:subscribe';
-    protected $description = 'Subscribe to MQTT device responses';
+    protected $description = 'Subscribe to MQTT device responses and broadcast via Reverb';
 
     public function handle()
     {
-        $devices = Devices::select('device_id')->distinct()->get();
+        $connection = config('mqtt.connections.default');
 
-        if ($devices->isEmpty()) {
-            $this->warn('No devices found to subscribe.');
+        if (!$connection) {
+            $this->error('MQTT connection config not found.');
             return;
         }
-
-        $connection = config('mqtt.connections.default');
 
         $client = new MqttClient(
             $connection['host'],
@@ -37,42 +34,73 @@ class MqttSubscriber extends Command
             ->setKeepAliveInterval(60)
             ->setUseTls($connection['use_tls']);
 
-        $client->connect($settings, true);
-
-        foreach ($devices as $device) {
-            if (!$device->device_id) {
-                continue;
-            }
-
-            $topic = $device->device_id . '/response';
-
-            $client->subscribe('+/response', function ($topic, $message) {
-
-                // Log::info('MQTT MESSAGE RECEIVED', [
-                //     'topic' => $topic,
-                //     'raw'   => $message,
-                // ]);
-
-                $deviceId = trim(explode('/', $topic)[0]);
-
-                $data = json_decode($message, true);
-
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    Log::error('INVALID JSON', ['message' => $message]);
-                    return;
-                }
-
-                // Log::info('🔥 FIRING EVENT', [
-                //     'device' => $deviceId,
-                //     'data'   => $data,
-                // ]);
-                // echo "[$topic] $message\n";
-                event(new \App\Events\MqttDataReceived($deviceId, $data));
-
-            }, 0);
+        try {
+            $client->connect($settings, true);
+        } catch (\Throwable $e) {
+            Log::error('❌ MQTT CONNECT FAILED', ['error' => $e->getMessage()]);
+            $this->error('MQTT connection failed.');
+            return;
         }
 
-        // 🔁 Keep listening forever
-        $client->loop(true);
+        Log::info('✅ MQTT CONNECTED');
+
+        /**
+         * 🔥 Subscribe ONCE using wildcard
+         * Example topics:
+         *   DEVICE123/response
+         *   DEVICE456/response
+         */
+        $client->subscribe('+/response', function (string $topic, string $message) {
+
+            Log::info('📡 MQTT MESSAGE RECEIVED', [
+                'topic' => $topic,
+                'message' => $message,
+            ]);
+
+            /**
+             * Extract device ID from topic
+             * DEVICE123/response → DEVICE123
+             */
+            $parts = explode('/', $topic);
+            $deviceId = $parts[0] ?? null;
+
+            if (!$deviceId) {
+                Log::warning('⚠️ Invalid topic format', ['topic' => $topic]);
+                return;
+            }
+
+            $payload = json_decode($message, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error('❌ INVALID JSON PAYLOAD', [
+                    'device' => $deviceId,
+                    'raw' => $message,
+                ]);
+                return;
+            }
+
+            Log::info('🚀 BROADCASTING EVENT', [
+                'device' => $deviceId,
+                'payload' => $payload,
+            ]);
+
+            /**
+             * 🔥 Broadcast to Reverb
+             */
+            event(new MqttDataReceived($deviceId, $payload));
+
+        }, 0);
+
+        /**
+         * 🔁 Keep the process alive forever
+         */
+        while (true) {
+            try {
+                $client->loop(true);
+            } catch (\Throwable $e) {
+                Log::error('❌ MQTT LOOP ERROR', ['error' => $e->getMessage()]);
+                sleep(5);
+            }
+        }
     }
 }
