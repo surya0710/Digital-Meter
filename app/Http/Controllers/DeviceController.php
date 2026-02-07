@@ -279,4 +279,197 @@ class DeviceController extends Controller
         ]);
     }
 
+    public function setRefreshRate(Request $request){
+        $validator = Validator::make($request->all(), [
+            'refreshRate' => 'required',
+            'deviceID' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode([
+                "cmd" => "setRate",
+                "data" => [
+                    "rate" => $request->refreshRate
+                ]
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function fetchMemory(Request $request){
+        $validator = Validator::make($request->all(), [
+            'deviceID' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode([
+                "cmd" => "getMemoryStatus"
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function fetchRefreshRate(Request $request){
+        $validator = Validator::make($request->all(), [
+            'deviceID' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode([
+                "cmd" => "getRate"
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function fetchVoltageCalibration(Request $request){
+        $validator = Validator::make($request->all(), [
+            'deviceID' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode([
+                "cmd" => "getVoltageCalibration"
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function setCalibratedVoltage(Request $request){
+        $validator = Validator::make($request->all(), [
+            'voltage' => 'required',
+            'deviceID' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode([
+                "cmd" => "setVoltageCalibration",
+                "data" => [
+                    "voltage" => $request->voltage
+                ]
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function setCalibratedCurrent(Request $request){
+        $validator = Validator::make($request->all(), [
+            'current' => 'required',
+            'deviceID' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode([
+                "cmd" => "setCurrentCalibration",
+                "data" => [
+                    "actual" => $request->current,
+                    "channel" => $request->index
+                ]
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
 }

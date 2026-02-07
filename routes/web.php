@@ -44,5 +44,11 @@ Route::post('devices/fetchTimer', [DeviceController::class, 'fetchTimer'])->name
 Route::post('devices/deleteTimer', [DeviceController::class, 'deleteTimer'])->name('devices.deleteTimer');
 Route::post('devices/createTimer', [DeviceController::class, 'createTimer'])->name('devices.saveTimer');
 Route::post('devices/shutdownAll', [DeviceController::class, 'shutdownAll'])->name('devices.shutdownAll');
+Route::post('devices/setRefreshRate', [DeviceController::class, 'setRefreshRate'])->name('devices.setRefreshRate');
+Route::post('devices/fetchMemory', [DeviceController::class, 'fetchMemory'])->name('devices.fetchMemory');
+Route::post('devices/fetchRefreshRate', [DeviceController::class, 'fetchRefreshRate'])->name('devices.getRefreshRate');
+Route::post('devices/fetchVoltageCalibration', [DeviceController::class, 'fetchVoltageCalibration'])->name('devices.getVoltageCalibration');
+Route::post('devices/setCalibratedVoltage', [DeviceController::class, 'setCalibratedVoltage'])->name('devices.setCalibratedVoltage');
+Route::post('devices/setCalibratedCurrent', [DeviceController::class, 'setCalibratedCurrent'])->name('devices.setCalibratedCurrent');
 Route::post('/devices/{id}/updateSwitchName', [DeviceController::class, 'updateSwitchName'])->name('devices.updateSwitchName');
 

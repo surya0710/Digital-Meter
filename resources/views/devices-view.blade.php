@@ -5,10 +5,9 @@
 <div class="page-body">
     <div class="container-fluid">
         <div class="d-flex gap-1 pt-2" style="justify-content: end;">
-            <div class="d-flex gap-2" style="justify-content: end;">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-cog"></i></button>
-            </div>
-            <div class="btn btn-success">Mode: <span id="mode"></span></div>
+            <button class="btn btn-primary" onclick="fetchMemory()" data-bs-toggle="modal" data-bs-target="#storageModal"><i class="fa-solid fa-floppy-disk"></i></button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-cog"></i></button>
+            <div class="btn btn-success"><span id="mode"></span></div>
             <button class="btn btn-danger" onclick="shutdownAll()" id="reset-voltage"><i class="fas fa-power-off"></i> Shutdown All</button>
         </div>
     </div>
@@ -167,23 +166,92 @@
                 </div>
 
                 <div class="modal-body">
-                    <form action="" method="post" id="switchName">
-                        @csrf
-
-                        <div class="modal-body">
-                            @for ($i = 0; $i <= 7; $i++)
-                            @php $switchName = 'switch' . $i; @endphp
-                                <div class="mb-2">
-                                    <label class="form-label">Switch {{ $i }}</label>
-                                    <input type="text" name="switch{{ $i }}" class="form-control" placeholder="Enter Switch Name" required value="{{ $device->switchNames->$switchName }}" />
+                    <ul class="nav nav-tabs" id="device-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="switch-name-tab" data-bs-toggle="tab" href="#switch-name" role="tab" aria-controls="switch-name" aria-selected="true">Switch Name</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="refresh-rate-tab" onclick="getRefreshRate()" data-bs-toggle="tab" href="#refresh-rate" role="tab" aria-controls="refresh-rate" aria-selected="false">Refresh Rate</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="voltage-calibration-tab" onclick="getVoltageCalibration()" data-bs-toggle="tab" href="#voltage-calibration" role="tab" aria-controls="voltage-calibration" aria-selected="false">Voltage C</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="current-calibration-tab" data-bs-toggle="tab" href="#current-calibration" role="tab" aria-controls="current-calibration" aria-selected="false">Current C</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="device-tabContent">
+                        <div class="tab-pane fade show active" id="switch-name" role="tabpanel" aria-labelledby="switch-name-tab">
+                            <form action="" method="post" id="switchName">
+                                @csrf
+                                <div class="modal-body">
+                                    @for ($i = 0; $i <= 7; $i++)
+                                    @php $switchName = 'switch' . $i; @endphp
+                                        <div class="col-sm-12 mb-2">
+                                            <label class="form-label">Switch {{ $i }}</label>
+                                            <input type="text" name="switch{{ $i }}" class="form-control" placeholder="Enter Switch Name" required value="{{ $device->switchNames->$switchName }}" />
+                                        </div>
+                                    @endfor
                                 </div>
-                            @endfor
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </form>
                         </div>
-
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Save</button>
+                        <div class="tab-pane fade" id="refresh-rate" role="tabpanel" aria-labelledby="refresh-rate-tab">
+                            <div class="modal-body">
+                                <div class="col-md-12">
+                                    <label class="form-label">Refresh Rate</label>
+                                    <select name="refresh_rate" class="form-control">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="15">15</option>
+                                        <option value="20">20</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" onclick="setRefreshRate()" class="btn btn-primary">Set Refresh Rate</button>
+                            </div>
                         </div>
-                    </form>
+                        <div class="tab-pane fade" id="voltage-calibration" role="tabpanel" aria-labelledby="voltage-calibration-tab">
+                            <div class="modal-body">
+                                <div class="col-md-12">
+                                    <label class="form-label">Calibrate Voltage</label>
+                                    <input type="number" class="form-control" id="calibrated-voltage" placeholder="Calibrate Voltage">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" onclick="setCalibratedVoltage()" class="btn btn-primary">Calibrate Voltage</button>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="current-calibration" role="tabpanel" aria-labelledby="current-calibration-tab">
+                            <div class="modal-body">
+                                @for ($i = 0; $i <= 7; $i++)
+                                <div class="d-flex gap-2 mt-2">
+                                    <input type="number" class="form-control" id="calibrated-current-{{ $i }}" placeholder="Calibrate Current">
+                                    <button type="button" onclick="setCalibratedCurrent({{ $i }})" class="btn btn-primary">Calibrate</button>
+                                </div>
+                                @endfor
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="storageModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Storage</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-md-12">
+                        <label class="form-label">Available Storage</label>
+                        <textarea id="displayStorage" class="form-control" readonly rows="10"></textarea>
+                    </div>
                 </div>
             </div>
         </div>
@@ -213,6 +281,115 @@
             }
         })
     });
+
+    function getRefreshRate(){
+        axios.post("{{ route('devices.getRefreshRate') }}", {
+                deviceID: "{{ $device->device_id }}",
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+    }
+
+    function getVoltageCalibration(){
+        axios.post("{{ route('devices.getVoltageCalibration') }}", {
+                deviceID: "{{ $device->device_id }}",
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+    }
+
+    function setRefreshRate(){
+        const refreshRate = $('select[name="refresh_rate"]').val();
+        axios.post("{{ route('devices.setRefreshRate') }}", {
+                refreshRate: refreshRate,
+                deviceID: "{{ $device->device_id }}",
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    window.location.reload();
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+    }
+
+    function setCalibratedVoltage(){
+        const voltage = $('#calibrated-voltage').val();
+        axios.post("{{ route('devices.setCalibratedVoltage') }}", {
+                voltage: voltage,
+                deviceID: "{{ $device->device_id }}",
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+    }
+
+    function setCalibratedCurrent(index){
+        const current = $('#calibrated-current-' + index).val();
+        axios.post("{{ route('devices.setCalibratedCurrent') }}", {
+                current: current,
+                index: index,
+                deviceID: "{{ $device->device_id }}",
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+    }
+
+    function fetchMemory(){
+        axios.post("{{ route('devices.fetchMemory') }}", {
+                deviceID: "{{ $device->device_id }}",
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+    }
     let activeDevice = null;
 
     function showDetails(deviceID) {
@@ -287,7 +464,7 @@
             })
             .then(response => {
                 if (response.data.status === true) {
-                    alert(response.data.message);
+                    
                 } else {
                     alert(response.data.error);
                 }
@@ -345,7 +522,7 @@
             })
             .then(response => {
                 if (response.data.status === true) {
-                    alert(response.data.message);
+                    
                 } else {
                     alert(response.data.error);
                 }
@@ -401,7 +578,7 @@
             })
             .then(res => {
                 if (res.data.status === true) {
-                    alert('Timer saved successfully');
+                    
                 } else {
                     alert(res.data.error || 'Save failed');
                 }
@@ -498,7 +675,7 @@
             })
             .then(response => {
                 if (response.data.status === true) {
-                    alert(response.data.message);
+                    
                 } else {
                     alert(response.data.error);
                 }
@@ -603,12 +780,36 @@
                     document.getElementById('mode').innerText = d.mode;
                 }
 
+                if (payload.data.cmd === 'getRate') {
+                    const setRate = e.data.data.rate;
+
+                    const $select = $('select[name="refresh_rate"]');
+
+                    // If already selected, do nothing
+                    if ($select.val() === setRate.toString()) return;
+
+                    // Select the value
+                    $select.val(setRate.toString()).trigger('change');
+                }
+
+                if(payload.data.cmd === 'getMemoryStatus') {
+                    const memoryStatus = e.data.data;
+                    const message = Object.entries(memoryStatus).map(([key, value]) => `${key} : ${value}`).join('\n');
+                    $("#displayStorage").prop('readonly', true).val(message);
+                }
+
+                if (payload.data.cmd === 'getVoltageCalibration') {
+                    const factor = e.data.data.factor;
+                    $("#calibrated-voltage").val(factor);
+                }
+
                 if (payload.data.cmd === 'getTimers') {
 
                     const msgId = e.data.msgId;
                     const timers = e.data.data;
 
                     const timerListEl = document.getElementById(`timer-list-${msgId}`);
+
                     if (!timerListEl || !Array.isArray(timers)) return;
 
                     let rows = timers.map(timer => {
