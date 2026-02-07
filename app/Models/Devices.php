@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\DeviceSwitchName;
 
 class Devices extends Model
 {
@@ -19,5 +20,10 @@ class Devices extends Model
 
     public function user(){
         return $this->belongsTo(User::class);
+    }
+
+    public function switchNames()
+    {
+        return $this->hasOne(DeviceSwitchName::class,'assign_device_id', 'id')->withDefault();
     }
 }

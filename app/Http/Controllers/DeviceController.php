@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Devices;
 use App\Models\User;
+use App\Models\DeviceSwitchName as SwitchName;
 use App\Services\MqttService;
 
 class DeviceController extends Controller
@@ -65,7 +66,7 @@ class DeviceController extends Controller
     }
 
     public function view($id){
-        $device = Devices::with('user')->where('id', $id)->first();
+        $device = Devices::with('switchNames')->where('id', $id)->first();
         return view('devices-view', compact('device'));
     }
 
@@ -124,7 +125,7 @@ class DeviceController extends Controller
             $message = json_encode(["cmd"=>"getTimers", "data"=>["relay"=> $request->relayID]]);
             $result = $this->mqtt->publish($topic, $message);
             return response()->json([
-                'status' => $result,
+                'status' => true,
                 'message' => $result ? 'Success' : 'Failed to publish'
             ]);
         } catch (\Exception $e) {
@@ -236,6 +237,46 @@ class DeviceController extends Controller
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    public function updateSwitchName(Request $request, $deviceID)
+    {
+        $validator = Validator::make($request->all(), [
+            'switch0' => 'required|string',
+            'switch1' => 'required|string',
+            'switch2' => 'required|string',
+            'switch3' => 'required|string',
+            'switch4' => 'required|string',
+            'switch5' => 'required|string',
+            'switch6' => 'required|string',
+            'switch7' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        SwitchName::updateOrCreate(
+            ['assign_device_id' => $deviceID],
+            [
+                'switch0' => $request->switch0,
+                'switch1' => $request->switch1,
+                'switch2' => $request->switch2,
+                'switch3' => $request->switch3,
+                'switch4' => $request->switch4,
+                'switch5' => $request->switch5,
+                'switch6' => $request->switch6,
+                'switch7' => $request->switch7,
+            ]
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Switch names updated successfully'
+        ]);
     }
 
 }

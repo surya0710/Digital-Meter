@@ -24,8 +24,6 @@
                                 <thead>
                                     <tr>
                                         <th>SNO.</th>
-                                        <th>User Name</th>
-                                        <th>Company Name</th>
                                         <th>Device ID</th>
                                         <th>Status</th>
                                         <th>Action</th>
@@ -35,8 +33,6 @@
                                     @foreach($devices as $device)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $device->user->name }}</td>
-                                        <td>{{  $device->user->company }}</td>
                                         <td>{{ $device->device_id }}</td>
                                         <td>{{ $device->is_active == 1 ? 'Active' : 'Inactive' }}</td>
                                         <td>
