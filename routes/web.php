@@ -47,8 +47,11 @@ Route::post('devices/shutdownAll', [DeviceController::class, 'shutdownAll'])->na
 Route::post('devices/setRefreshRate', [DeviceController::class, 'setRefreshRate'])->name('devices.setRefreshRate');
 Route::post('devices/fetchMemory', [DeviceController::class, 'fetchMemory'])->name('devices.fetchMemory');
 Route::post('devices/fetchRefreshRate', [DeviceController::class, 'fetchRefreshRate'])->name('devices.getRefreshRate');
+Route::post('/devices/getCurrentLimit', [DeviceController::class, 'getCurrentLimit'])->name('devices.getCurrentLimit');
 Route::post('devices/fetchVoltageCalibration', [DeviceController::class, 'fetchVoltageCalibration'])->name('devices.getVoltageCalibration');
 Route::post('devices/setCalibratedVoltage', [DeviceController::class, 'setCalibratedVoltage'])->name('devices.setCalibratedVoltage');
 Route::post('devices/setCalibratedCurrent', [DeviceController::class, 'setCalibratedCurrent'])->name('devices.setCalibratedCurrent');
 Route::post('/devices/{id}/updateSwitchName', [DeviceController::class, 'updateSwitchName'])->name('devices.updateSwitchName');
+Route::post('devices/{id}/setVoltageProtection', [DeviceController::class, 'setVoltageProtection'])->name('devices.setVoltageProtection');
+Route::post('devices/{id}/setCurrentProtection', [DeviceController::class, 'setCurrentProtection'])->name('devices.setCurrentProtection');
 

@@ -390,7 +390,15 @@ class DeviceController extends Controller
             $message = json_encode([
                 "cmd" => "getVoltageCalibration"
             ]);
+
             $result = $this->mqtt->publish($topic, $message);
+
+            $message2 = json_encode([
+                "cmd" => "getVoltageLimits"
+            ]);
+
+            $result2 = $this->mqtt->publish($topic, $message2);
+
             return response()->json([
                 'status' => $result,
                 'message' => $result ? 'Success' : 'Failed to publish'
@@ -472,4 +480,98 @@ class DeviceController extends Controller
         }
     }
 
+    public function setVoltageProtection(Request $request, $deviceID){
+        $validator = Validator::make($request->all(), [
+            'underVoltage' => 'required',
+            'overVoltage' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $deviceID."/request";
+            $message = json_encode([
+                "cmd" => "setVoltageProtection",
+                "data" => [
+                    "min" => $request->underVoltage,
+                    "max" => $request->overVoltage
+                ]
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function setCurrentProtection(Request $request, $deviceID){
+        $validator = Validator::make($request->all(), [
+            'max_current' => 'required|lt:5',
+            'relay' => 'required'
+        ]);
+
+        if($validator->fails()){
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $topic = $deviceID."/request";
+            
+            $message = json_encode([
+                "cmd" => "setCurrentLimit",
+                "data" => [
+                    "limit" => $request->max_current,
+                    "channel" => $request->relay
+                ]
+            ]);
+
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getCurrentLimit(Request $request){
+        try {
+            $topic = $request->deviceID."/request";
+            $message = json_encode([
+                "cmd" => "getCurrentLimit",
+                "data" => [
+                    "channel" => $request->relayID
+                ]
+            ]);
+            $result = $this->mqtt->publish($topic, $message);
+            return response()->json([
+                'status' => $result,
+                'message' => $result ? 'Success' : 'Failed to publish'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
 }

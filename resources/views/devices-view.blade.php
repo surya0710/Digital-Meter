@@ -39,17 +39,15 @@
                                 Details</button>
                         </div>
                         <div class="flex py-3">
-                            <button class="btn btn-danger" data-status="0" id="switch-{{ $i }}"
-                                onclick="switchOn(this, {{ $i }})"><i class="fa-solid fa-toggle-off"></i> OFF</button>
-                            <button class="btn btn-danger" onclick="showTimer({{ $i }})"><i
-                                    class="fa-solid fa-clock"></i>
+                            <button class="btn btn-danger" data-status="0" id="switch-{{ $i }}" onclick="switchOn(this, {{ $i }})"><i class="fa-solid fa-toggle-off"></i> OFF</button>
+                            <button class="btn btn-danger" onclick="showTimer({{ $i }})"><i class="fa-solid fa-clock"></i>
                                 Show Timer</button>
                         </div>
                         <div class="row py-3">
                             <button class="btn btn-success rounded" id="fuse-{{ $i }}"><i class="fa-solid fa-bolt"></i>
                                 Fuse
                                 OK</button>
-                            <button class="btn btn-success mt-2"> Current: Normal</button>
+                            <button class="btn btn-success mt-2" id="fault-{{ $i }}"> Current: Normal</button>
                         </div>
                         <div class="row px-3 py-2">
                             <label><i class="fa-solid fa-bolt"></i> Current (A)</label>
@@ -73,10 +71,7 @@
                         <div class="hidden mt-3" id="device-{{ $i }}-details">
                             <ul class="nav nav-tabs" id="myTab" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <a class="nav-link active" id="voltage-tab-{{ $i }}" data-bs-toggle="tab" href="#voltage-{{ $i }}" role="tab" aria-controls="voltage" aria-selected="true">Voltage Settings</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="current-tab-{{ $i }}" data-bs-toggle="tab" href="#current-{{ $i }}" role="tab" aria-controls="current" aria-selected="false">Current Settings</a>
+                                    <a class="nav-link active" id="current-tab-{{ $i }}" data-bs-toggle="tab" href="#current-{{ $i }}" role="tab" aria-controls="current" aria-selected="true">Current Settings</a>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <a class="nav-link" id="energy-tab-{{ $i }}" data-bs-toggle="tab" href="#energy-{{ $i }}" role="tab" aria-controls="energy" aria-selected="false">Energy Management</a>
@@ -86,37 +81,19 @@
                                 </li>
                             </ul>
                             <div class="tab-content" id="myTabContent">
-                                <div class="tab-pane fade show active" id="voltage-{{ $i }}" role="tabpanel"
-                                    aria-labelledby="voltage-tab">
-                                    <div class="container p-3">
-                                        <div class="row">
-                                            <label><i class="fa-solid fa-gears"></i> Voltage Settings</label>
-                                            <form class="form-group">
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="min-voltage" placeholder="Min Voltage">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="max-voltage" placeholder="Max Voltage">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <button type="submit" class="btn btn-primary">Save</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="current-{{ $i }}" role="tabpanel"
-                                    aria-labelledby="current-tab">
+                                <div class="tab-pane fade show active" id="current-{{ $i }}" role="tabpanel" aria-labelledby="current-tab">
                                     <div class="container p-3">
                                         <div class="row">
                                             <label><i class="fa-solid fa-bolt"></i> Current Settings <span class="bg-light circle"></span></label>
-                                            <form class="form-group">
+                                            <form class="form-group current-protection-form" id="currentProtection{{ $i }}" data-device-id="{{ $device->device_id }}" data-relay="{{ $i }}">
+                                                @csrf
+
                                                 <div class="row">
                                                     <div class="col-md-4">
-                                                        <input type="number" class="form-control" name="max-current" placeholder="Max Current">
+                                                        <input type="number" class="form-control" name="max_current" min="0.01" max="5" step="0.01" value="0.00" required>
+                                                        <input type="hidden" name="relay" value="{{ $i }}">
                                                     </div>
+
                                                     <div class="col-md-4">
                                                         <button type="submit" class="btn btn-primary">Save</button>
                                                     </div>
@@ -136,12 +113,11 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="timer-{{ $i }}" role="tabpanel"
-                                    aria-labelledby="timer-tab">
+                                <div class="tab-pane fade" id="timer-{{ $i }}" role="tabpanel" aria-labelledby="timer-tab" onclick="showTimer({{ $i }})">
                                     <div class="container p-3">
                                         <div class="d-flex justify-content-space-between">
                                             <label><i class="fa-solid fa-list"></i> TImer List</label>
-                                            <a href="javascript:void(0)" class="btn btn-success" onclick="addTimerRow('{{ $i }}')">+ Add Timer</a>
+                                            <div class="btn btn-success" onclick="addTimerRow(event,'{{ $i }}')">+ Add Timer</div>
                                         </div>
                                         <div class="row mt-2 " id="timer-list-{{ $i }}">
                                         </div>
@@ -174,7 +150,7 @@
                             <a class="nav-link" id="refresh-rate-tab" onclick="getRefreshRate()" data-bs-toggle="tab" href="#refresh-rate" role="tab" aria-controls="refresh-rate" aria-selected="false">Refresh Rate</a>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <a class="nav-link" id="voltage-calibration-tab" onclick="getVoltageCalibration()" data-bs-toggle="tab" href="#voltage-calibration" role="tab" aria-controls="voltage-calibration" aria-selected="false">Voltage C</a>
+                            <a class="nav-link" id="voltage-calibration-tab" onclick="getVoltageCalibration()" data-bs-toggle="tab" href="#voltage-calibration" role="tab" aria-controls="voltage-calibration" aria-selected="false"><i class="fas fa-cog"></i> Voltage</a>
                         </li>
                         <li class="nav-item" role="presentation">
                             <a class="nav-link" id="current-calibration-tab" data-bs-toggle="tab" href="#current-calibration" role="tab" aria-controls="current-calibration" aria-selected="false">Current C</a>
@@ -216,13 +192,30 @@
                         </div>
                         <div class="tab-pane fade" id="voltage-calibration" role="tabpanel" aria-labelledby="voltage-calibration-tab">
                             <div class="modal-body">
-                                <div class="col-md-12">
+                                <div class="col-md-12 mt-2">
                                     <label class="form-label">Calibrate Voltage</label>
-                                    <input type="number" class="form-control" id="calibrated-voltage" placeholder="Calibrate Voltage">
+                                    <div class="d-flex gap-2">
+                                        <input type="number" class="form-control" id="calibrated-voltage" placeholder="Calibrate Voltage">
+                                        <button type="button" onclick="setCalibratedVoltage()" class="btn btn-primary">Calibrate</button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" onclick="setCalibratedVoltage()" class="btn btn-primary">Calibrate Voltage</button>
+                                <form action="" method="post" id="voltageProtection">
+                                    <div class="row">
+                                        <div class="col-md-6 mt-2">
+                                            <label class="form-label">Under Voltage</label>
+                                            <div class="d-flex gap-2">
+                                                <input type="number" name="underVoltage" class="form-control" id="under-voltage" placeholder="Under Voltage">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mt-2">
+                                            <label class="form-label">Over Voltage</label>
+                                            <div class="d-flex gap-2">
+                                                <input type="number" name="overVoltage" class="form-control" id="over-voltage" placeholder="Over Voltage">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="current-calibration" role="tabpanel" aria-labelledby="current-calibration-tab">
@@ -280,6 +273,54 @@
                 }
             }
         })
+    });
+
+    $("#voltageProtection").on("submit", function(){
+        event.preventDefault();
+        const formData = new FormData(this);
+        const url = "{{ route('devices.setVoltageProtection', $device->id) }}";
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                if(response.status == 'success') {
+                    // window.location.reload();
+                }
+
+                if(response.status == 'error') {
+                    alert(response.message);
+                }
+            }
+        })
+    });
+    
+    $(document).on('submit', '.current-protection-form', function (e) {
+        e.preventDefault(); // ⛔ stops page reload
+
+        const form = this;
+        const formData = new FormData(form);
+
+        const deviceId = $(form).data('device-id');
+        const relay = $(form).data('relay');
+
+        $.ajax({
+            url: "{{ route('devices.setCurrentProtection', $device->device_id) }}",
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success(response) {
+                if (response.status === 'success') {
+                    console.log(`Relay ${relay} updated`);
+                } else {
+                    console.log(response.message);
+                }
+            }
+        });
     });
 
     function getRefreshRate(){
@@ -394,6 +435,22 @@
 
     function showDetails(deviceID) {
 
+        axios.post("{{ route('devices.getCurrentLimit') }}", {
+                deviceID: "{{ $device->device_id }}",
+                relayID : deviceID
+            })
+            .then(response => {
+                if (response.data.status === true) {
+                    $('#current-limit-' + deviceID).text(response.data.limit);
+                } else {
+                    alert(response.data.error);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Request failed');
+            });
+
         const currentDevice = $('#device-' + deviceID);
         const currentDetails = $('#device-' + deviceID + '-details');
         const currentButton = $("#details-" + deviceID);
@@ -437,8 +494,8 @@
                     showDetails(deviceID);
 
                     // Deactivate all tabs for THIS device
-                    $(`#voltage-tab-${deviceID}`).removeClass('active');
-                    $(`#voltage-${deviceID}`).removeClass('show active');
+                    $(`#current-tab-${deviceID}`).removeClass('active');
+                    $(`#current-${deviceID}`).removeClass('show active');
 
                     // Activate TIMER tab
                     $(`#timer-tab-${deviceID}`).addClass('active');
@@ -507,12 +564,13 @@
         ];
 
         return days.map(d => `
-                <label class="day">
-                    <input type="checkbox" data-bit="${d.bit}" ${mask & d.bit ? 'checked' : ''}>
-                    <span>${d.label}</span>
-                </label>
-            `).join('');
+            <label class="day">
+                <input type="checkbox" data-bit="${d.bit}" ${mask & d.bit ? 'checked' : ''}>
+                <span>${d.label}</span>
+            </label>
+        `).join('');
     }
+
 
     function deleteTimer(timerID, relayID) {
         axios.post("{{ route('devices.deleteTimer') }}", {
@@ -610,8 +668,9 @@
         }
     }
 
-    function addTimerRow(relayKey) {
-        console.log(relayKey);
+    function addTimerRow( event, relayKey) {
+        event.preventDefault();
+
         const tbody = document.getElementById(`timer-body-${relayKey}`);
         
         if (!tbody) {
@@ -620,54 +679,55 @@
         }
 
         const newRow = `
-                <tr data-relay="${relayKey}">
-                    <td></td>
+            <tr data-relay="${relayKey}">
+                <td></td>
 
-                    <td>
-                        <div class="day-selector">
-                            ${renderDays(0)}
-                        </div>
-                    </td>
+                <td>
+                    <div class="day-selector">
+                        ${renderDays(0)}
+                    </div>
+                </td>
 
-                    <td>
-                        <input type="time"
-                            name="start_time"
-                            class="form-control"
-                            value="08:00">
-                    </td>
+                <td>
+                    <input type="time"
+                        name="start_time"
+                        class="form-control"
+                        value="08:00">
+                </td>
 
-                    <td>
-                        <input type="time"
-                            name="stop_time"
-                            class="form-control"
-                            value="17:00">
-                    </td>
+                <td>
+                    <input type="time"
+                        name="stop_time"
+                        class="form-control"
+                        value="17:00">
+                </td>
 
-                    <td class="text-center">
-                        <span class="bg-light circle"></span>
-                    </td>
+                <td class="text-center">
+                    <span class="bg-light circle"></span>
+                </td>
 
-                    <td>
-                        <button class="btn btn-danger" data-enabled="false" onclick="toggleTimerEnabled(this)">OFF</button>
-                    </td>
+                <td>
+                    <button class="btn btn-success" data-enabled="true" onclick="toggleTimerEnabled(this)">ON</button>
+                </td>
 
-                    <td>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary"
-                                    onclick="saveTimer(this, '{{ $device->device_id }}')">
-                                Save
-                            </button>
-                            <button class="btn btn-danger"
-                                    onclick="this.closest('tr').remove()">
-                                Delete
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+                <td>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary"
+                                onclick="saveTimer(this, '{{ $device->device_id }}')">
+                            Save
+                        </button>
+                        <button class="btn btn-danger"
+                                onclick="this.closest('tr').remove()">
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
 
         tbody.insertAdjacentHTML('beforeend', newRow);
     }
+
 
     function shutdownAll() {
         axios.post("{{ route('devices.shutdownAll') }}", {
@@ -758,6 +818,25 @@
                                 fuseBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Fuse OK`;
                             }
                         }
+
+                        const fault = document.getElementById(`fault-${deviceIndex}`);
+                        if (fault) {
+                            if (d.faults[i] !== 0) {
+                                const faultsMap = {
+                                    '1': 'Over Current',
+                                    '2': 'UnderVoltage (Global)',
+                                    '3': 'OverVoltage (Global)',
+                                };
+
+                                fault.classList.remove('btn-success');
+                                fault.classList.add('btn-warning');
+                                fault.innerHTML = `<i class="fa-solid fa-bolt"></i> Current : ${faultsMap[d.faults[i]]}`;
+                            } else {
+                                fault.classList.remove('btn-warning');
+                                fault.classList.add('btn-success');
+                                fault.innerHTML = `<i class="fa-solid fa-bolt"></i> Current : Good`;
+                            }
+                        }
                     }
 
                     const voltageEL = document.getElementById('voltage-value');
@@ -798,6 +877,17 @@
                     $("#displayStorage").prop('readonly', true).val(message);
                 }
 
+                if(payload.data.cmd === 'setVoltageLimits') {
+                    const voltageLimits = e.data.data;
+                    $("#under-voltage").val(voltageLimits.min);
+                    $("#over-voltage").val(voltageLimits.max);
+                }
+
+                if(payload.data.cmd === 'setCurrentLimit') {
+                    const currentLimit = e.data.data.limit;
+                    $("input[name='max_current']").val(currentLimit ?? 0);
+                }
+
                 if (payload.data.cmd === 'getVoltageCalibration') {
                     const factor = e.data.data.factor;
                     $("#calibrated-voltage").val(factor);
@@ -805,7 +895,7 @@
 
                 if (payload.data.cmd === 'getTimers') {
 
-                    const msgId = e.data.msgId;
+                    const msgId = e.data.relay;
                     const timers = e.data.data;
 
                     const timerListEl = document.getElementById(`timer-list-${msgId}`);
