@@ -40,8 +40,7 @@
                         </div>
                         <div class="flex py-3">
                             <button class="btn btn-danger" data-status="0" id="switch-{{ $i }}" onclick="switchOn(this, {{ $i }})"><i class="fa-solid fa-toggle-off"></i> OFF</button>
-                            <button class="btn btn-danger" onclick="showTimer({{ $i }})"><i class="fa-solid fa-clock"></i>
-                                Show Timer</button>
+                            <button class="btn btn-danger" onclick="showTimer(event, {{ $i }})"><i class="fa-solid fa-clock"></i> Show Timer</button>
                         </div>
                         <div class="row py-3">
                             <button class="btn btn-success rounded" id="fuse-{{ $i }}"><i class="fa-solid fa-bolt"></i>
@@ -76,8 +75,8 @@
                                 <li class="nav-item" role="presentation">
                                     <a class="nav-link" id="energy-tab-{{ $i }}" data-bs-toggle="tab" href="#energy-{{ $i }}" role="tab" aria-controls="energy" aria-selected="false">Energy Management</a>
                                 </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="timer-tab-{{ $i }}" data-bs-toggle="tab" href="#timer-{{ $i }}" role="tab" aria-controls="timer" aria-selected="false">Timer List</a>
+                                <li class="nav-item" role="presentation" onpointerdown="event.stopPropagation()">
+                                    <a class="nav-link" id="timer-tab-{{ $i }}" data-bs-toggle="tab" href="#timer-{{ $i }}" role="tab">Timer List </a>
                                 </li>
                             </ul>
                             <div class="tab-content" id="myTabContent">
@@ -113,7 +112,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="timer-{{ $i }}" role="tabpanel" aria-labelledby="timer-tab" onclick="showTimer({{ $i }})">
+                                <div class="tab-pane fade" id="timer-{{ $i }}" role="tabpanel" aria-labelledby="timer-tab" onclick="event.stopPropagation()">
                                     <div class="container p-3">
                                         <div class="d-flex justify-content-space-between">
                                             <label><i class="fa-solid fa-list"></i> TImer List</label>
@@ -323,6 +322,16 @@
         });
     });
 
+    document.addEventListener('shown.bs.tab', function (e) {
+        if (e.target.id.startsWith('timer-tab-')) {
+
+            // extract relay index
+            const relayKey = e.target.id.replace('timer-tab-', '');
+
+            showTimer(e, relayKey);
+        }
+    });
+
     function getRefreshRate(){
         axios.post("{{ route('devices.getRefreshRate') }}", {
                 deviceID: "{{ $device->device_id }}",
@@ -480,9 +489,12 @@
         $('html, body').animate({
             scrollTop: currentDevice.offset().top - 20
         }, 400);
+        
     }
 
-    function showTimer(deviceID) {
+    function showTimer(event, deviceID) {
+        event.preventDefault();
+        event.stopPropagation();
 
         axios.post("{{ route('devices.fetchTimer') }}", {
                 relayID: deviceID,
