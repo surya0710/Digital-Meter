@@ -676,11 +676,11 @@
                 </td>
 
                 <td>
-                    <input type="time" name="start_time" class="form-control" value="08:00" onpointerdown="event.stopPropagation()" onfocus="event.stopPropagation()">
+                    <input type="time" name="start_time" class="form-control" value="08:00" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()">
                 </td>
 
                 <td>
-                    <input type="time" name="stop_time" class="form-control" value="17:00" onpointerdown="event.stopPropagation()" onfocus="event.stopPropagation()">
+                    <input type="time" name="stop_time" class="form-control" value="17:00" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()">
                 </td>
 
                 <td class="text-center">
@@ -708,14 +708,6 @@
 
         tbody.insertAdjacentHTML('beforeend', newRow);
     }
-
-    ['pointerdown', 'mousedown', 'click', 'focusin'].forEach(evt => {
-        document.addEventListener(evt, function (e) {
-            if (e.target.closest('.day-selector, .form-control, .btn')) {
-                e.stopPropagation();
-            }
-        }, true); // 👈 capture phase is CRITICAL
-    });
 
     function shutdownAll() {
         axios.post("{{ route('devices.shutdownAll') }}", {
