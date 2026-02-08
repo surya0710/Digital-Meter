@@ -517,7 +517,7 @@ class DeviceController extends Controller
 
     public function setCurrentProtection(Request $request, $deviceID){
         $validator = Validator::make($request->all(), [
-            'max_current' => 'required|lt:5',
+            'max_current' => 'required',
             'relay' => 'required'
         ]);
 
