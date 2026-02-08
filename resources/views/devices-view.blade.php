@@ -117,7 +117,7 @@
                                     <div class="container p-3">
                                         <div class="d-flex justify-content-space-between">
                                             <label><i class="fa-solid fa-list"></i> TImer List</label>
-                                            <div class="btn btn-success" onclick="addTimerRow(event,'{{ $i }}')">+ Add Timer</div>
+                                            <button type="button" class="btn btn-success" onclick="addTimerRow(event,'{{ $i }}')">+ Add Timer </button>
                                         </div>
                                         <div class="row mt-2 " id="timer-list-{{ $i }}">
                                         </div>
@@ -533,39 +533,22 @@
     }
 
     function renderDays(mask) {
-        const days = [{
-                label: 'M',
-                bit: 1
-            },
-            {
-                label: 'T',
-                bit: 2
-            },
-            {
-                label: 'W',
-                bit: 4
-            },
-            {
-                label: 'Th',
-                bit: 8
-            },
-            {
-                label: 'F',
-                bit: 16
-            },
-            {
-                label: 'S',
-                bit: 32
-            },
-            {
-                label: 'Su',
-                bit: 64
-            },
+        const days = [
+            { label: 'M',  bit: 1 },
+            { label: 'T',  bit: 2 },
+            { label: 'W',  bit: 4 },
+            { label: 'Th', bit: 8 },
+            { label: 'F',  bit: 16 },
+            { label: 'S',  bit: 32 },
+            { label: 'Su', bit: 64 },
         ];
 
         return days.map(d => `
-            <label class="day">
-                <input type="checkbox" data-bit="${d.bit}" ${mask & d.bit ? 'checked' : ''}>
+            <label class="day" onclick="event.stopPropagation()">
+                <input type="checkbox"
+                    data-bit="${d.bit}"
+                    ${mask & d.bit ? 'checked' : ''}
+                    onclick="event.stopPropagation()">
                 <span>${d.label}</span>
             </label>
         `).join('');
@@ -648,7 +631,10 @@
     }
 
 
-    function toggleTimerEnabled(button) {
+    function toggleTimerEnabled(event, button) {
+        
+        event.preventDefault();
+        event.stopPropagation(); // 🔥 THIS is the key
 
         const current = button.dataset.enabled === 'true';
         const next = !current;
@@ -670,6 +656,7 @@
 
     function addTimerRow( event, relayKey) {
         event.preventDefault();
+        event.stopPropagation(); // 🔥 THIS is the key
 
         const tbody = document.getElementById(`timer-body-${relayKey}`);
         
@@ -689,17 +676,11 @@
                 </td>
 
                 <td>
-                    <input type="time"
-                        name="start_time"
-                        class="form-control"
-                        value="08:00">
+                    <input type="time" name="start_time" class="form-control" value="08:00" onpointerdown="event.stopPropagation()" onfocus="event.stopPropagation()">
                 </td>
 
                 <td>
-                    <input type="time"
-                        name="stop_time"
-                        class="form-control"
-                        value="17:00">
+                    <input type="time" name="stop_time" class="form-control" value="17:00" onpointerdown="event.stopPropagation()" onfocus="event.stopPropagation()">
                 </td>
 
                 <td class="text-center">
@@ -707,7 +688,7 @@
                 </td>
 
                 <td>
-                    <button class="btn btn-success" data-enabled="true" onclick="toggleTimerEnabled(this)">ON</button>
+                    <button class="btn btn-success" data-enabled="true" onpointerdown="event.stopPropagation()" onclick="toggleTimerEnabled(event, this)">ON</button>
                 </td>
 
                 <td>
@@ -728,6 +709,13 @@
         tbody.insertAdjacentHTML('beforeend', newRow);
     }
 
+    ['pointerdown', 'mousedown', 'click', 'focusin'].forEach(evt => {
+        document.addEventListener(evt, function (e) {
+            if (e.target.closest('.day-selector, .form-control, .btn')) {
+                e.stopPropagation();
+            }
+        }, true); // 👈 capture phase is CRITICAL
+    });
 
     function shutdownAll() {
         axios.post("{{ route('devices.shutdownAll') }}", {
@@ -947,7 +935,7 @@
                     }).join('');
 
                     timerListEl.innerHTML = `
-                        <table class="table table-responsive">
+                        <table class="table table-responsive timer-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
