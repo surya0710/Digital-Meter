@@ -13,7 +13,7 @@
 <body>
     @include('partials.header')
     <div class="page-body-wrapper">
-        @if($device->device_id != '3C:E9:0E:CD:90:45')
+        @if(Auth::user()->email == 'skelectricals@gmail.com')
             @include('partials.aside')
         @endif
     <main>
