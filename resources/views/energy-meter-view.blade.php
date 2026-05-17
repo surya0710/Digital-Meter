@@ -6,8 +6,6 @@
 <style>
     .meter-wrapper { padding: 1.5rem; }
 
-    .page-sidebar, .logo-wrapper{ display: none!important; }
-
     .page-header {
         display: flex;
         align-items: center;
