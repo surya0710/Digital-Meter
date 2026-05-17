@@ -13,7 +13,9 @@
 <body>
     @include('partials.header')
     <div class="page-body-wrapper">
-        @include('partials.aside')
+        @if($device->device_id != '3C:E9:0E:CD:90:45')
+            @include('partials.aside')
+        @endif
     <main>
         @yield('content')
     </main>

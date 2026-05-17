@@ -51,6 +51,10 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        if(Auth::user()->email == 'skelectricals@gmail.com'){
+            return redirect()->route('devices.view', ['id' => 2]);
+        }
+
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 

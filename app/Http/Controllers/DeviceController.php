@@ -60,13 +60,16 @@ class DeviceController extends Controller
 
             return redirect()
                 ->back()
-                ->with('error', 'Something went wrong')
+                ->with('error', $e->getMessage())
                 ->withInput();
         }
     }
 
     public function view($id){
         $device = Devices::with('switchNames')->where('id', $id)->first();
+        if($device->device_id == '3C:E9:0E:CD:90:45'){
+            return view('energy-meter-view', compact('device'));
+        }
         return view('devices-view', compact('device'));
     }
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MqttController;
 use App\Livewire\DeviceControl;
+use App\Http\Controllers\EnergyMeterController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes

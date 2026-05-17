@@ -1,4 +1,5 @@
     <header class="page-header row">
+      @if($device->device_id != '3C:E9:0E:CD:90:45')
         <div class="logo-wrapper d-flex align-items-center col-auto">
           <a href="{{ route('dashboard') }}" class="logo">
             <img class="light-logo img-fluid" src="{{ asset('assets/images/logo/3Elabs.jpeg') }}" alt="logo" style="width: 120px;" />
@@ -10,6 +11,7 @@
             </svg>
           </a>
         </div>
+      @endif
         <div class="page-main-header col">
           <div class="header-left">
             <form class="form-inline search-full col" action="#" method="get">
