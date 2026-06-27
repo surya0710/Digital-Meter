@@ -2,64 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Services\Auth\AuthenticationService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    
-    public function index(){
+    public function __construct(
+        protected AuthenticationService $authService
+    ) {}
+
+    public function index(): View
+    {
         return view('login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     *
-     * This function will validate the email and password provided by the user,
-     * and log them in if the credentials are correct. If the credentials are
-     * incorrect, it will return a redirect back to the login page with an error
-     * message.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function login(Request $request)
+    public function login(LoginRequest $request): RedirectResponse
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'email' => 'required|email',
-                'password' => 'required',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator->errors());
-        }
-
-        $credentials = $request->only(['email', 'password']);
-
-        if (!Auth::attempt($credentials)) {
-            return back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
-            ]);
-        }
-
-        $request->session()->regenerate();
-
-        if(Auth::user()->email == 'skelectricals@gmail.com'){
-            return redirect()->route('devices.view', ['id' => 2]);
-        }
-
-        return redirect()->intended(RouteServiceProvider::HOME);
+        return $this->authService->login($request);
     }
 
-    public function logout(){
-        auth()->logout();
-        return redirect('/');
+    public function logout(): RedirectResponse
+    {
+        return $this->authService->logout();
     }
 }

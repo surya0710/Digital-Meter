@@ -13,17 +13,14 @@
 <body>
     @include('partials.header')
     <div class="page-body-wrapper">
-        @if(Auth::user()->email == 'skelectricals@gmail.com')
+        @if($usesAdminLayout ?? auth()->user()?->usesAdminLayout())
             @include('partials.aside')
         @endif
     <main>
         @yield('content')
     </main>
     @include('partials.footer')
-    <!-- JS -->
     @vite(['resources/js/app.js'])
-    <!-- 🔥 FORCE LOAD ECHO (CDN) -->
-
     @stack('scripts')
 
 </body>

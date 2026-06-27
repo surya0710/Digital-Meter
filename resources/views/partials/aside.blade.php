@@ -13,8 +13,9 @@
                <h6>Dashboards</h6>
             </a>
          </li>
+         @if(auth()->user()->isAdmin())
          <li class="sidebar-list">
-            <a class="sidebar-link {{ request()->is('users*') ? 'active' : '' }}"
+            <a class="sidebar-link {{ request()->is('dashboard/users*') ? 'active' : '' }}"
                href="javascript:void(0)">
                
                <svg class="stroke-icon">
@@ -25,12 +26,13 @@
                <i class="iconly-Arrow-Right-2 icli"></i>
             </a>
 
-            <ul class="sidebar-submenu" style="{{ strpos(request()->url(), 'users') !== false ? 'display:block' : 'display:none' }}">
+            <ul class="sidebar-submenu" style="{{ str_contains(request()->url(), 'users') ? 'display:block' : 'display:none' }}">
                <li>
                      <a href="{{ route('users.list') }}">List</a>
                </li>
             </ul>
          </li>
+         @endif
 
          <li class="sidebar-list">
             <a class="sidebar-link {{ request()->is('devices*') ? 'active' : '' }}" href="javascript:void(0)">

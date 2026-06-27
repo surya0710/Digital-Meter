@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Devices')
 @section('content')
 <div class="page-body">
     <div class="container-fluid">
@@ -9,13 +9,19 @@
                 <div class="col-sm-6 col-12">
                     <h2>Devices List</h2>
                 </div>
+                @if(auth()->user()->isAdmin())
                 <div class="col-sm-6 col-12 d-flex justify-content-end">
                     <a class="btn btn-primary" href="{{ route('devices.createform') }}">+ Add New</a>
                 </div>
+                @endif
             </div>
         </div>
     </div>
     <div class="container-fluid">
+        @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
@@ -28,29 +34,38 @@
                                         <th>User Name</th>
                                         <th>Company Name</th>
                                         <th>Device ID</th>
+                                        <th>Type</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($devices as $device)
+                                    @forelse($devices as $device)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $device->user->name }}</td>
-                                        <td>{{  $device->user->company }}</td>
+                                        <td>{{ $device->user->company ?? '—' }}</td>
                                         <td>{{ $device->device_id }}</td>
-                                        <td>{{ $device->is_active == 1 ? 'Active' : 'Inactive' }}</td>
+                                        <td>{{ $device->device_type?->label() ?? 'Smart Panel' }}</td>
+                                        <td>{{ $device->isActive() ? 'Active' : 'Inactive' }}</td>
                                         <td>
                                             <a href="{{ route('devices.view', $device->id) }}" class="btn btn-primary">View Device</a>
                                         </td>
                                     </tr>
-                                    @endforeach
+                                    @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center">No devices found.</td>
+                                    </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
+
+                        {{ $devices->links() }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    @endsection
+</div>
+@endsection

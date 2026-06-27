@@ -42,20 +42,36 @@
                   @csrf
                   <h2 class="text-center">Sign in to account</h2>
                   <p class="text-center">Enter your email &amp; password to login</p>
+
+                  @if ($errors->any())
+                  <div class="alert alert-danger">
+                    @foreach ($errors->all() as $error)
+                      <div>{{ $error }}</div>
+                    @endforeach
+                  </div>
+                  @endif
+
                   <div class="form-group">
                     <label class="col-form-label">Email Address</label>
-                    <input class="form-control" type="email" name="email" :value="old('email')" required autofocus autocomplete="username">
+                    <input class="form-control @error('email') is-invalid @enderror" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username">
+                    @error('email')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                   </div>
                   <div class="form-group">
                     <label class="col-form-label">Password</label>
                     <div class="form-input position-relative">
-                      <input class="form-control" type="password" name="password" required autocomplete="current-password">
+                      <input class="form-control @error('password') is-invalid @enderror" type="password" name="password" required autocomplete="current-password">
                       <div class="show-hide"><span class="show"></span></div>
                     </div>
+                    @error('password')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
                   </div>
                   <div class="form-group mb-0 checkbox-checked">
                     <div class="form-check checkbox-solid-info">
-                        <a class="link" href="forget-password.html">Forgot password?</a>
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="remember">Remember me</label>
                     </div>
                     <div class="text-end mt-3">
                       <button class="btn btn-primary btn-block w-100" type="submit">Sign in</button>

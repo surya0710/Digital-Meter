@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Mqtt\PublishMqttRequest;
 use App\Services\MqttService;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class MqttController extends Controller
 {
-    protected $mqtt;
+    public function __construct(
+        protected MqttService $mqtt
+    ) {}
 
-    public function __construct(MqttService $mqtt)
+    public function publish(PublishMqttRequest $request): JsonResponse
     {
-        $this->mqtt = $mqtt;
-    }
-
-    public function publish(Request $request)
-    {
-        $topic = $request->input('topic');
         $message = $request->input('message');
-        
-        $result = $this->mqtt->publish($topic, $message);
-        
+        if (is_array($message)) {
+            $message = json_encode($message);
+        }
+
+        $result = $this->mqtt->publish($request->input('topic'), $message);
+
         return response()->json([
             'success' => $result,
-            'message' => $result ? 'Message published' : 'Failed to publish'
+            'message' => $result ? 'Message published' : 'Failed to publish',
         ]);
     }
 }

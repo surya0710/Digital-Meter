@@ -18,9 +18,10 @@
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/slick.css ') }}" />
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/slick-theme.css ') }}" />
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/datatables.css') }}"/>
-<!-- App css -->
-<link id="color" rel="stylesheet" href="{{ asset('assets/css/color-1.css ') }}" media="screen" />
-<link rel="stylesheet" href="{{ asset('assets/css/style.css ') }}" />
+    <!-- App css -->
+    <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-1.css ') }}" media="screen" />
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css ') }}" />
+    @stack('styles')
 </head>
     <body>
         <div class="tap-top"><i class="iconly-Arrow-Up icli"></i></div>

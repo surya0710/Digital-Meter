@@ -2,52 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use App\Models\User;
-use Illuminate\Support\Facades\Log;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Services\User\UserService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function list(){
-        $users = User::latest()->paginate(10);
-        return view('users', compact('users'));
+    public function __construct(
+        protected UserService $users
+    ) {}
+
+    public function list(): View
+    {
+        return view('users', [
+            'users' => $this->users->paginatedList(),
+        ]);
     }
 
-    public function createForm(){
+    public function createForm(): View
+    {
         return view('users-create');
     }
 
-    public function create(Request $request)
+    public function create(StoreUserRequest $request): RedirectResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|digits:10',
-            'role' => 'required',
-            'password' => 'required|min:6',
-            'password_confirmation' => 'required|same:password',
-        ]);
+        $this->users->create($request->userAttributes());
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        try{
-            User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'role' => $request->role,
-                'password' => bcrypt($request->password),
-                'status' => 1,
-            ]);
-
-            return redirect()->route('users.list')->with('success', 'User created successfully');
-        }
-        catch(\Exception $e){
-            Log::error($e);
-            return redirect()->back()->with('error', 'Something went wrong');
-        }
+        return redirect()
+            ->route('users.list')
+            ->with('success', 'User created successfully.');
     }
 }

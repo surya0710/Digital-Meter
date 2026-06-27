@@ -1,0 +1,199 @@
+.energy-meter-dashboard {
+    background: #0f172a;
+    border-radius: 12px;
+    margin: 0 0 1.5rem;
+}
+
+.energy-meter-dashboard .meter-wrapper {
+    padding: 1.5rem;
+}
+
+.energy-meter-dashboard .meter-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.energy-meter-dashboard .meter-page-header h4 {
+    font-weight: 700;
+    font-size: 1rem;
+    margin: 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #e2e8f0;
+}
+
+.energy-meter-dashboard .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: #4ade80;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+}
+
+.energy-meter-dashboard .live-badge::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: meter-blink 1.4s infinite;
+}
+
+@keyframes meter-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.energy-meter-dashboard .top-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+@media (max-width: 992px) {
+    .energy-meter-dashboard .top-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .energy-meter-dashboard .top-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.energy-meter-dashboard .mcard {
+    background: #1e293b;
+    border: 1px solid #1e3a55;
+    border-top: 3px solid var(--c);
+    border-radius: 12px;
+    padding: 1rem 1.1rem 0.9rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.energy-meter-dashboard .mcard-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+    margin-bottom: 5px;
+}
+
+.energy-meter-dashboard .mcard-value {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--c);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.energy-meter-dashboard .mcard-unit {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #475569;
+    margin-left: 2px;
+}
+
+.energy-meter-dashboard .mcard-icon {
+    position: absolute;
+    right: 0.9rem;
+    bottom: 0.6rem;
+    font-size: 1.4rem;
+    color: var(--c);
+    opacity: 0.12;
+}
+
+.energy-meter-dashboard .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .energy-meter-dashboard .phase-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.energy-meter-dashboard .ppanel {
+    background: #111827;
+    border: 1px solid #1e3a55;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.energy-meter-dashboard .ppanel-head {
+    background: #1e293b;
+    border-bottom: 1px solid #1e3a55;
+    padding: 0.6rem 1rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94a3b8;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.energy-meter-dashboard .ppanel-head i {
+    color: #38bdf8;
+    font-size: 0.75rem;
+}
+
+.energy-meter-dashboard .ptable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.energy-meter-dashboard .ptable tr {
+    border-bottom: 1px solid #1a2640;
+}
+
+.energy-meter-dashboard .ptable tr:last-child {
+    border-bottom: none;
+}
+
+.energy-meter-dashboard .ptable td {
+    padding: 0.65rem 1rem;
+    vertical-align: middle;
+}
+
+.energy-meter-dashboard .plabel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.energy-meter-dashboard .pdot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.energy-meter-dashboard .pval {
+    text-align: right;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.energy-meter-dashboard .pval .u {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #475569;
+    margin-left: 2px;
+}

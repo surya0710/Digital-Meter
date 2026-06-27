@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Services\MqttService;
+use App\Services\Mqtt\DeviceMqttService;
 use App\Models\MqttResponse;
 use Illuminate\Support\Facades\Validator;
 
@@ -52,19 +52,12 @@ class DeviceControl extends Component
         $this->isLoading = true;
         
         try {
-            $mqtt = app(MqttService::class);
-            
-            $topic = $this->deviceID . "/request";
-            $message = json_encode([
-                "msgId" => uniqid(),
-                "cmd" => "setRelay",
-                "data" => [
-                    "relay" => $this->relayID,
-                    "state" => $this->relayState
-                ]
-            ]);
-            
-            $result = $mqtt->publish($topic, $message);
+            $result = app(DeviceMqttService::class)->setRelay(
+                $this->deviceID,
+                $this->relayID,
+                (int) $this->relayState,
+                uniqid()
+            );
             
             if ($result) {
                 $this->statusMessage = 'Command sent successfully! Waiting for device response...';

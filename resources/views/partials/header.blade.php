@@ -1,5 +1,5 @@
     <header class="page-header row">
-      @if(Auth::user()->email == 'skelectricals@gmail.com')
+      @if($usesAdminLayout ?? auth()->user()?->usesAdminLayout())
         <div class="logo-wrapper d-flex align-items-center col-auto">
           <a href="{{ route('dashboard') }}" class="logo">
             <img class="light-logo img-fluid" src="{{ asset('assets/images/logo/3Elabs.jpeg') }}" alt="logo" style="width: 120px;" />
@@ -67,7 +67,7 @@
                   </div>
                   <div class="user-content">
                     <h6>{{ Auth::user()->name }}</h6>
-                    <p class="mb-0">Admin <i class="fa-solid fa-chevron-down"></i>
+                    <p class="mb-0">{{ Auth::user()->roleLabel() }} <i class="fa-solid fa-chevron-down"></i>
                     </p>
                   </div>
                 </div>
@@ -83,7 +83,10 @@
                       <svg class="svg-color">
                         <use href="{{ asset('assets/css/iconly-sprite.svg#Login') }}"></use>
                       </svg>
-                      <a class="ms-2" href="{{ route('logout') }}">Log Out</a>
+                      <form action="{{ route('logout') }}" method="POST" class="ms-2">
+                        @csrf
+                        <button type="submit" class="btn btn-link p-0 border-0 align-baseline">Log Out</button>
+                      </form>
                     </li>
                   </ul>
                 </div>

@@ -2,94 +2,75 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Mqtt\MqttConnectionFactory;
+use App\Services\Mqtt\MqttInboundMessageHandler;
 use Illuminate\Console\Command;
-use PhpMqtt\Client\MqttClient;
-use PhpMqtt\Client\ConnectionSettings;
-use App\Events\MqttDataReceived;
 use Illuminate\Support\Facades\Log;
+use PhpMqtt\Client\MqttClient;
 
 class MqttSubscriber extends Command
 {
     protected $signature = 'mqtt:subscribe';
-    protected $description = 'Subscribe to MQTT device responses and broadcast via Reverb';
 
-    public function handle()
-    {
-        $connection = config('mqtt.connections.default');
+    protected $description = 'Subscribe to MQTT device responses, persist telemetry, and broadcast via Reverb';
 
-        if (!$connection) {
-            Log::critical('❌ MQTT config missing');
+    public function handle(
+        MqttConnectionFactory $connections,
+        MqttInboundMessageHandler $handler
+    ): int {
+        if (! $connections->isConfigured()) {
+            $this->error('MQTT broker is not configured. Set MQTT_HOST in your environment.');
+
             return Command::FAILURE;
         }
 
-        // 🔁 Reconnect forever
+        $topic = $connections->subscribeTopic();
+        $this->info("Listening for MQTT messages on {$topic}");
+
         while (true) {
+            $client = null;
 
             try {
-                Log::info('🔄 Creating MQTT client');
+                $client = $connections->makeClient('sub');
+                $this->connect($client, $connections);
 
-                $client = new MqttClient(
-                    $connection['host'],
-                    $connection['port'],
-                    $connection['client_id'] . '_sub_' . uniqid()
+                $client->subscribe(
+                    $topic,
+                    fn (string $receivedTopic, string $message) => $handler->handle($receivedTopic, $message),
+                    $connections->subscribeQos()
                 );
 
-                $settings = (new ConnectionSettings)
-                    ->setUsername($connection['username'])
-                    ->setPassword($connection['password'])
-                    ->setKeepAliveInterval(60)
-                    ->setConnectTimeout(5)
-                    ->setUseTls($connection['use_tls']);
-
-                // 🔌 Connect
-                $client->connect($settings, true);
-                Log::info('✅ MQTT CONNECTED');
-
-                // 📡 Subscribe
-                $client->subscribe('+/response', function (string $topic, string $message) {
-
-                    Log::info('📩 MQTT MESSAGE', compact('topic'));
-
-                    $deviceId = explode('/', $topic)[0] ?? null;
-
-                    if (!$deviceId) {
-                        Log::warning('⚠️ Invalid topic', compact('topic'));
-                        return;
-                    }
-
-                    $payload = json_decode($message, true);
-
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        Log::error('❌ Invalid JSON', [
-                            'device' => $deviceId,
-                            'raw'    => $message,
-                        ]);
-                        return;
-                    }
-
-                    event(new MqttDataReceived($deviceId, $payload));
-                }, 0);
-
-                // ♾️ Block until disconnect
+                $this->info('MQTT subscription active.');
                 $client->loop(true);
-
             } catch (\Throwable $e) {
-
-                Log::error('💥 MQTT CONNECTION LOST', [
-                    'error' => $e->getMessage()
+                Log::error('MQTT subscriber connection lost', [
+                    'error' => $e->getMessage(),
                 ]);
 
-                // 🧹 Clean shutdown
-                try {
-                    if (isset($client)) {
-                        $client->disconnect();
-                    }
-                } catch (\Throwable) {
-                    // ignore
-                }
+                $this->warn('Connection lost. Reconnecting in '.$connections->reconnectDelaySeconds().'s...');
 
-                sleep(5); // ⏳ backoff before reconnect
+                $this->disconnect($client);
+                sleep($connections->reconnectDelaySeconds());
             }
+        }
+    }
+
+    protected function connect(MqttClient $client, MqttConnectionFactory $connections): void
+    {
+        $client->connect($connections->settings(), true);
+        $this->info('Connected to MQTT broker at '.$connections->connection()['host']);
+    }
+
+    protected function disconnect(?MqttClient $client): void
+    {
+        if (! $client) {
+            return;
+        }
+
+        try {
+            $client->disconnect();
+        } catch (\Throwable) {
+            // Ignore disconnect errors during recovery.
         }
     }
 }

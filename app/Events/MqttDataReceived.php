@@ -2,48 +2,37 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
 class MqttDataReceived implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public string $deviceId;
-    public array $data;
+    public function __construct(
+        public readonly string $deviceId,
+        public readonly array $data,
+    ) {}
 
-    public function __construct(string $deviceId, array $data)
+    public function broadcastOn(): PrivateChannel
     {
-        $this->deviceId = $deviceId;
-        $this->data     = $data;
-
-        Log::info('🔥 MQTT EVENT CONSTRUCTED', [
-            'device' => $deviceId,
-            'data' => $data,
-        ]);
-    }
-
-    public function broadcastOn(): Channel
-    {
-        return new Channel('device-dashboard');
+        return new PrivateChannel(config('mqtt.broadcast_channel', 'device-dashboard'));
     }
 
     public function broadcastAs(): string
     {
-        return 'mqtt.data';
+        return config('mqtt.broadcast_event', 'mqtt.data');
     }
 
     public function broadcastWith(): array
     {
-
         return [
             'device_id' => $this->deviceId,
-            'data'      => $this->data,
-            'time'      => now()->toDateTimeString(),
+            'data' => $this->data,
+            'time' => now()->toDateTimeString(),
         ];
     }
 }

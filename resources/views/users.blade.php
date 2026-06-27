@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Users')
 @section('content')
 <div class="page-body">
     <div class="container-fluid">
@@ -16,39 +16,52 @@
         </div>
     </div>
     <div class="container-fluid">
+        @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="display" id="basic-6">
+                            <table class="display table" id="basic-6">
                                 <thead>
                                     <tr>
                                         <th>Name</th>
                                         <th>Company</th>
                                         <th>Email</th>
                                         <th>Phone</th>
-                                        <th>Active</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
                                         <th>Created At</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($users as $user)
+                                    @forelse ($users as $user)
                                     <tr>
                                         <td>{{ $user->name }}</td>
-                                        <td>{{ $user->company }}</td>
+                                        <td>{{ $user->company ?? '—' }}</td>
                                         <td>{{ $user->email }}</td>
                                         <td>{{ $user->phone }}</td>
-                                        <td>{{ $user->status ? 'Active' : 'Inactive' }}</td>
-                                        <td>{{ date('d M Y', strtotime($user->created_at)) }}</td>
+                                        <td>{{ $user->roleLabel() }}</td>
+                                        <td>{{ $user->isActive() ? 'Active' : 'Inactive' }}</td>
+                                        <td>{{ $user->created_at?->format('d M Y') }}</td>
                                     </tr>
-                                    @endforeach
+                                    @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center">No users found.</td>
+                                    </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
+
+                        {{ $users->links() }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    @endsection
+</div>
+@endsection

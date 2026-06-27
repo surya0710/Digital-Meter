@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Add User')
 @section('content')
 <div class="page-body">
     <div class="container-fluid">
@@ -84,13 +84,14 @@
                                     <div class="col-sm-6">
                                         <label class="form-label">Role <span class="text-danger">*</span></label>
                                         <select
-                                            name="role"
-                                            class="form-select @error('role') is-invalid @enderror">
+                                            name="user_role"
+                                            class="form-select @error('user_role') is-invalid @enderror">
                                             <option value="">Select</option>
-                                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                                            <option value="guest" {{ old('role') == 'guest' ? 'selected' : '' }}>Guest</option>
+                                            <option value="admin" {{ old('user_role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                                            <option value="guest" {{ old('user_role') === 'guest' ? 'selected' : '' }}>Guest</option>
+                                            <option value="user" {{ old('user_role') === 'user' ? 'selected' : '' }}>User</option>
                                         </select>
-                                        @error('role')
+                                        @error('user_role')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -101,8 +102,8 @@
                                             name="status"
                                             class="form-select @error('status') is-invalid @enderror">
                                             <option value="">Select</option>
-                                            <option value="1" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
-                                            <option value="0" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                            <option value="1" {{ old('status') === '1' ? 'selected' : '' }}>Active</option>
+                                            <option value="0" {{ old('status') === '0' ? 'selected' : '' }}>Inactive</option>
                                         </select>
                                         @error('status')
                                         <div class="invalid-feedback">{{ $message }}</div>

@@ -2,44 +2,45 @@
 
 namespace App\Services;
 
-use PhpMqtt\Client\MqttClient;
-use PhpMqtt\Client\ConnectionSettings;
+use App\Services\Mqtt\MqttConnectionFactory;
 use Illuminate\Support\Facades\Log;
 
 class MqttService
 {
-    protected $connection;
+    public function __construct(
+        protected MqttConnectionFactory $connections
+    ) {}
 
-    public function __construct()
+    public function publishToDevice(string $deviceId, array $payload, int $qos = 0, bool $retain = false): bool
     {
-        $this->connection = config('mqtt.connections.default');
+        return $this->publish("{$deviceId}/request", $payload, $qos, $retain);
     }
 
-    public function publish($topic, $message, $qos = 0, $retain = false)
+    public function publish(string $topic, array|string $message, int $qos = 0, bool $retain = false): bool
     {
+        if (is_array($message)) {
+            $message = json_encode($message);
+        }
+
+        if (! $this->connections->isConfigured()) {
+            Log::error('MQTT publish failed: broker not configured', compact('topic'));
+
+            return false;
+        }
+
         try {
-            $client = new MqttClient(
-                $this->connection['host'],
-                $this->connection['port'],
-                $this->connection['client_id'] . '_pub'
-            );
-
-            $settings = (new ConnectionSettings)
-                ->setUsername($this->connection['username'])
-                ->setPassword($this->connection['password'])
-                ->setKeepAliveInterval(60)
-                ->setUseTls($this->connection['use_tls']);
-
-            $client->connect($settings, true);
+            $client = $this->connections->makeClient('pub');
+            $client->connect($this->connections->settings(), true);
             $client->publish($topic, $message, $qos, $retain);
             $client->disconnect();
 
             return true;
-
         } catch (\Throwable $e) {
-            Log::error('MQTT Publish Error', [
+            Log::error('MQTT publish failed', [
+                'topic' => $topic,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

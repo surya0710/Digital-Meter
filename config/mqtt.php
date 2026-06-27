@@ -8,7 +8,7 @@ return [
 
         'default' => [
             'host' => env('MQTT_HOST'),
-            'port' => 1883,
+            'port' => env('MQTT_PORT', 1883),
             'username' => env('MQTT_USERNAME'),
             'password' => env('MQTT_PASSWORD'),
 
@@ -22,4 +22,12 @@ return [
             'timeout' => 5,
         ],
     ],
+
+    'subscribe_topic' => env('MQTT_SUBSCRIBE_TOPIC', '+/response'),
+
+    'reconnect_delay' => env('MQTT_RECONNECT_DELAY', 5),
+
+    'broadcast_channel' => env('MQTT_BROADCAST_CHANNEL', 'device-dashboard'),
+
+    'broadcast_event' => env('MQTT_BROADCAST_EVENT', 'mqtt.data'),
 ];
